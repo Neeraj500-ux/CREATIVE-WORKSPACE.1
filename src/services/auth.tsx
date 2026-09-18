@@ -8,9 +8,11 @@ import {
 } from "react";
 
 import {
+  GoogleAuthProvider,
   onAuthStateChanged,
   sendPasswordResetEmail,
   signInWithEmailAndPassword,
+  signInWithPopup,
   signOut,
   type User as FirebaseUser,
 } from "firebase/auth";
@@ -32,6 +34,7 @@ interface AuthContextValue {
   firebaseMode: boolean;
   authError: string | null;
   login: (email: string, password: string) => Promise<void>;
+  loginWithGoogle: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   logout: () => Promise<void>;
 }
@@ -39,6 +42,12 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | undefined>(
   undefined,
 );
+
+const googleProvider = new GoogleAuthProvider();
+
+googleProvider.setCustomParameters({
+  prompt: "select_account",
+});
 
 type FirestoreProfile = Partial<UserProfile> & {
   email?: string | null;
@@ -50,8 +59,9 @@ async function getFirebaseProfile(
 ): Promise<UserProfile | null> {
   if (!db) return null;
 
-  const profileRef = doc(db, "users", firebaseUser.uid);
-  const profileSnapshot = await getDoc(profileRef);
+  const profileSnapshot = await getDoc(
+    doc(db, "users", firebaseUser.uid),
+  );
 
   if (!profileSnapshot.exists()) {
     return null;
@@ -65,6 +75,24 @@ async function getFirebaseProfile(
     email: data.email ?? firebaseUser.email ?? "",
     active: data.active !== false,
   } as UserProfile;
+}
+
+async function getValidatedProfile(firebaseUser: FirebaseUser) {
+  if (!auth) {
+    throw new Error("Firebase authentication is not configured.");
+  }
+
+  const profile = await getFirebaseProfile(firebaseUser);
+
+  if (!profile || profile.active === false) {
+    await signOut(auth).catch(() => undefined);
+
+    throw new Error(
+      "Your Firebase account does not have an active workspace profile.",
+    );
+  }
+
+  return profile;
 }
 
 export function AuthProvider({
@@ -114,7 +142,7 @@ export function AuthProvider({
           if (!profile || profile.active === false) {
             setUser(null);
             setAuthError(
-              "Firebase account mil gaya, lekin users collection me active profile nahi hai.",
+              "Active workspace profile nahi mila.",
             );
             return;
           }
@@ -170,15 +198,34 @@ export function AuthProvider({
             password,
           );
 
-          const profile = await getFirebaseProfile(result.user);
+          const profile = await getValidatedProfile(result.user);
 
-          if (!profile || profile.active === false) {
-            await signOut(auth);
+          setUser(profile);
+        } catch (error) {
+          const message = readableFirebaseError(error);
+          setAuthError(message);
+          throw new Error(message);
+        }
+      },
 
-            throw new Error(
-              "Is account ka active workspace profile nahi mila.",
-            );
-          }
+      loginWithGoogle: async () => {
+        setAuthError(null);
+
+        if (!firebaseEnabled || !auth) {
+          const message =
+            "Firebase configured nahi hai. .env file check karein.";
+
+          setAuthError(message);
+          throw new Error(message);
+        }
+
+        try {
+          const result = await signInWithPopup(
+            auth,
+            googleProvider,
+          );
+
+          const profile = await getValidatedProfile(result.user);
 
           setUser(profile);
         } catch (error) {
