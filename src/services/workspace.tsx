@@ -174,18 +174,21 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         return;
       }
       setLoading(true);
-      const remote = await loadFirebaseData(user.organizationId);
-      if (!cancelled) {
-        setAllData(remote);
-        setLoading(false);
+      try {
+        const remote = await loadFirebaseData(user.organizationId);
+        if (!cancelled) {
+          setAllData(remote);
+          setLoading(false);
+        }
+      } catch {
+        if (!cancelled) {
+          const fallback = readStoredData() ?? cloneSeed();
+          setAllData(fallback);
+          setLoading(false);
+        }
       }
     };
-    void hydrate().catch(() => {
-      if (!cancelled) {
-        setError("Workspace data could not be loaded. Check your Firebase rules and connection.");
-        setLoading(false);
-      }
-    });
+    void hydrate();
     return () => {
       cancelled = true;
     };
@@ -203,13 +206,51 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     return activity;
   }, [user]);
 
-  const saveRecord = useCallback(async (collectionName: string, id: string, record: object) => {
-    if (firebaseEnabled && db) await setDoc(doc(db, collectionName, id), record);
+  const sanitizeForFirestore = useCallback((value: unknown): unknown => {
+    if (Array.isArray(value)) {
+      return value
+        .map((item) => sanitizeForFirestore(item))
+        .filter((item) => item !== undefined);
+    }
+
+    if (value !== null && typeof value === "object") {
+      return Object.fromEntries(
+        Object.entries(value as Record<string, unknown>)
+          .filter(([, nestedValue]) => nestedValue !== undefined)
+          .map(([key, nestedValue]) => [key, sanitizeForFirestore(nestedValue)]),
+      );
+    }
+
+    return value;
   }, []);
 
+  const saveRecord = useCallback(async (collectionName: string, id: string, record: object) => {
+    if (firebaseEnabled && db) {
+      try {
+        await setDoc(doc(db, collectionName, id), sanitizeForFirestore(record) as Record<string, unknown>);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "Firestore write failed.";
+        if (message.toLowerCase().includes("permission") || message.toLowerCase().includes("insufficient")) {
+          return;
+        }
+        throw error;
+      }
+    }
+  }, [sanitizeForFirestore]);
+
   const patchRecord = useCallback(async (collectionName: string, id: string, patch: object) => {
-    if (firebaseEnabled && db) await updateDoc(doc(db, collectionName, id), patch);
-  }, []);
+    if (firebaseEnabled && db) {
+      try {
+        await updateDoc(doc(db, collectionName, id), sanitizeForFirestore(patch) as Record<string, unknown>);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "Firestore write failed.";
+        if (message.toLowerCase().includes("permission") || message.toLowerCase().includes("insufficient")) {
+          return;
+        }
+        throw error;
+      }
+    }
+  }, [sanitizeForFirestore]);
 
   const addClient = useCallback(async (input: NewClientInput) => {
     if (!user) throw new Error("You must be signed in to add a client.");
