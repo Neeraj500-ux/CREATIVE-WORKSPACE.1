@@ -114,15 +114,16 @@ const loadFirebaseData = async (organizationId: string): Promise<WorkspaceData> 
 const scopeData = (data: WorkspaceData, user: UserProfile): WorkspaceData => {
   if (user.role === "director") return data;
 
+  const userProjectIds = Array.isArray(user.projectIds) ? user.projectIds : [];
   const allProjects = data.projects.filter((project) => !project.archived);
   const projectIds = new Set(
     user.role === "client"
-      ? allProjects.filter((project) => project.clientId === user.clientId || user.projectIds.includes(project.id)).map((project) => project.id)
+      ? allProjects.filter((project) => project.clientId === user.clientId || userProjectIds.includes(project.id)).map((project) => project.id)
       : user.role === "manager"
-        ? allProjects.filter((project) => user.projectIds.includes(project.id) || project.managerId === user.id || project.departmentId === user.departmentId).map((project) => project.id)
+        ? allProjects.filter((project) => userProjectIds.includes(project.id) || project.managerId === user.id || project.departmentId === user.departmentId).map((project) => project.id)
         : user.role === "team_leader"
-          ? allProjects.filter((project) => user.projectIds.includes(project.id) || project.teamId === user.teamId).map((project) => project.id)
-          : allProjects.filter((project) => user.projectIds.includes(project.id)).map((project) => project.id),
+          ? allProjects.filter((project) => userProjectIds.includes(project.id) || project.teamId === user.teamId).map((project) => project.id)
+          : allProjects.filter((project) => userProjectIds.includes(project.id)).map((project) => project.id),
   );
 
   const projects = allProjects.filter((project) => projectIds.has(project.id));
@@ -131,8 +132,8 @@ const scopeData = (data: WorkspaceData, user: UserProfile): WorkspaceData => {
     if (user.role === "employee") return task.assigneeId === user.id || Boolean(task.projectId && projectIds.has(task.projectId) && task.visibility === "client-safe");
     return Boolean(task.projectId && projectIds.has(task.projectId)) || task.assigneeId === user.id;
   });
-  const taskAssigneeIds = new Set(tasks.map((task) => task.assigneeId).filter(Boolean));
-  const allowedUserIds = new Set([user.id, ...Array.from(taskAssigneeIds), ...projects.flatMap((project) => project.memberIds), ...projects.map((project) => project.managerId), ...projects.map((project) => project.teamLeadId)].filter(Boolean));
+  const taskAssigneeIds = new Set(tasks.map((task) => task.assigneeId).filter((id): id is string => Boolean(id)));
+  const allowedUserIds = new Set([user.id, ...Array.from(taskAssigneeIds), ...projects.flatMap((project) => project.memberIds ?? []), ...projects.map((project) => project.managerId).filter((id): id is string => Boolean(id)), ...projects.map((project) => project.teamLeadId).filter((id): id is string => Boolean(id))]);
   const clients = data.clients.filter((client) => user.role === "client" ? client.id === user.clientId : projects.some((project) => project.clientId === client.id) || client.managerId === user.id);
   const approvals = data.approvals.filter((approval) => approval.requesterId === user.id || approval.reviewerId === user.id || (approval.projectId ? projectIds.has(approval.projectId) : false));
   const requests = data.requests.filter((request) => request.requesterId === user.id || request.reviewerId === user.id);

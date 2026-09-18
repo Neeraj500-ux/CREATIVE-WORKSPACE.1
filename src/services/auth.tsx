@@ -58,8 +58,16 @@ async function getFirebaseProfile(
   return {
     ...data,
     id: firebaseUser.uid,
+    organizationId: data.organizationId ?? "",
+    name: data.name ?? firebaseUser.displayName ?? "Workspace User",
     email: data.email ?? firebaseUser.email ?? "",
+    role: (data.role as UserProfile["role"]) ?? "employee",
+    title: data.title ?? "Team Member",
+    initials: data.initials ?? "WU",
     active: data.active !== false,
+    status: data.status ?? "active",
+    projectIds: Array.isArray(data.projectIds) ? data.projectIds : [],
+    permissions: Array.isArray(data.permissions) ? data.permissions : [],
   } as UserProfile;
 }
 

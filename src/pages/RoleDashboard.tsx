@@ -87,6 +87,8 @@ export function RoleDashboard() {
   const { data, mode, loading, error, updateTask } = useWorkspace();
   const navigate = useNavigate();
   const { notify } = useToast();
+  const chartData = useMemo(() => Array.from({ length: 6 }, (_, index) => { const date = new Date(); date.setDate(date.getDate() - (5 - index)); const key = date.toISOString().slice(0, 10); return { day: date.toLocaleDateString("en-IN", { weekday: "short" }), completed: data.tasks.filter((task) => task.status === "Completed" && task.updatedAt.slice(0, 10) === key).length, created: data.tasks.filter((task) => task.createdAt.slice(0, 10) === key).length }; }), [data.tasks]);
+
   if (!user) return null;
   if (loading) return <div className="dashboard-loading"><div className="loading-bar" /><div className="loading-bar loading-bar-short" /></div>;
   const stats = getStats(user.role, data, user.id);
@@ -97,7 +99,6 @@ export function RoleDashboard() {
   const taskDistribution = taskStatuses.map((status) => ({ name: status, value: data.tasks.filter((task) => task.status === status).length })).filter((item) => item.value);
   const activity = data.activities.slice(0, 6);
   const activityIcons: Record<string, LucideIcon> = { Project: FolderKanban, Task: CheckSquare2, Client: BriefcaseBusiness, File: FileText, Approval: ShieldAlert, People: UsersRound, Finance: WalletCards, Attendance: CheckSquare2, Goal };
-  const chartData = useMemo(() => Array.from({ length: 6 }, (_, index) => { const date = new Date(); date.setDate(date.getDate() - (5 - index)); const key = date.toISOString().slice(0, 10); return { day: date.toLocaleDateString("en-IN", { weekday: "short" }), completed: data.tasks.filter((task) => task.status === "Completed" && task.updatedAt.slice(0, 10) === key).length, created: data.tasks.filter((task) => task.createdAt.slice(0, 10) === key).length }; }), [data.tasks]);
   const clientHealth = data.clients.slice(0, 4);
 
   const changeTask = async (task: Task, status: TaskStatus) => {
