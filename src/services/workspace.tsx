@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import { addDoc, collection, doc, getDocs, query, setDoc, updateDoc, where } from "firebase/firestore";
+import { collection, doc, getDocs, query, setDoc, updateDoc, where } from "firebase/firestore";
 import { cloneSeed, DEMO_ORGANIZATION_ID } from "../data/seed";
 import { isOverdue } from "../lib/formatters";
 import { db, firebaseEnabled } from "./firebase";
@@ -24,7 +24,6 @@ import type {
   NotificationItem,
   Project,
   Task,
-  TaskStatus,
   Team,
   UserProfile,
   WorkspaceData,
@@ -87,12 +86,8 @@ const persistDemoData = (data: WorkspaceData) => {
 
 const readCollection = async <T,>(name: string, organizationId: string): Promise<T[]> => {
   if (!db) return [];
-  try {
-    const snapshot = await getDocs(query(collection(db, name), where("organizationId", "==", organizationId)));
-    return snapshot.docs.map((item) => ({ id: item.id, ...item.data() }) as T);
-  } catch {
-    return [];
-  }
+  const snapshot = await getDocs(query(collection(db, name), where("organizationId", "==", organizationId)));
+  return snapshot.docs.map((item) => ({ id: item.id, ...item.data() }) as T);
 };
 
 const loadFirebaseData = async (organizationId: string): Promise<WorkspaceData> => {
@@ -130,7 +125,7 @@ const scopeData = (data: WorkspaceData, user: UserProfile): WorkspaceData => {
           : allProjects.filter((project) => user.projectIds.includes(project.id)).map((project) => project.id),
   );
 
-  const projects = data.projects.filter((project) => projectIds.has(project.id));
+  const projects = allProjects.filter((project) => projectIds.has(project.id));
   const tasks = data.tasks.filter((task) => {
     if (user.role === "client") return Boolean(task.projectId && projectIds.has(task.projectId) && task.visibility === "client-safe");
     if (user.role === "employee") return task.assigneeId === user.id || Boolean(task.projectId && projectIds.has(task.projectId) && task.visibility === "client-safe");
@@ -148,7 +143,10 @@ const scopeData = (data: WorkspaceData, user: UserProfile): WorkspaceData => {
   const teams = data.teams.filter((team) => !user.teamId || team.id === user.teamId || projects.some((project) => project.teamId === team.id));
   const attendance = data.attendance.filter((record) => record.userId === user.id || allowedUserIds.has(record.userId));
   const activities = data.activities.filter((activity) => activity.actorId === user.id || Boolean(activity.entityId && (projectIds.has(activity.entityId) || tasks.some((task) => task.id === activity.entityId))));
-  const goals = data.goals.filter((goal) => goal.ownerId === user.id || goal.scope === "Project" && projects.some((project) => project.id === goal.id));
+  const goals = data.goals.filter((goal) => {
+    const projectId = (goal as GoalRecord & { projectId?: string }).projectId;
+    return goal.ownerId === user.id || (goal.scope === "Project" && Boolean(projectId && projects.some((project) => project.id === projectId)));
+  });
   const notifications = data.notifications.filter((item) => item.userId === user.id);
 
   return { ...data, users: data.users.filter((candidate) => allowedUserIds.has(candidate.id)), departments, teams, clients, projects, tasks, approvals, requests, files, docs, finance, goals, attendance, activities, notifications };
@@ -166,10 +164,12 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       setError(null);
       if (!user) {
         setAllData(firebaseEnabled ? cloneSeed() : readStoredData() ?? cloneSeed());
+        setLoading(false);
         return;
       }
       if (!firebaseEnabled) {
         setAllData(readStoredData() ?? cloneSeed());
+        setLoading(false);
         return;
       }
       setLoading(true);

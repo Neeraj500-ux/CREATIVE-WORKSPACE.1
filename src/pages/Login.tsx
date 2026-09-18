@@ -1,33 +1,29 @@
 import { useState, type FormEvent } from "react";
 import {
-  Link,
-  useLocation,
-  useNavigate,
-} from "react-router-dom";
-
-import {
   ArrowRight,
   Check,
   CheckCircle2,
   ChevronRight,
+  AlertCircle,
   Eye,
   EyeOff,
   Layers3,
+  Link2,
   LockKeyhole,
   Mail,
   ShieldCheck,
   Sparkles,
 } from "lucide-react";
-
-import { Button, useToast } from "../components/ui";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useToast } from "../components/ui";
 import { useAuth } from "../services/auth";
 
 function GoogleIcon() {
   return (
     <svg
-      className="google-icon"
-      viewBox="0 0 24 24"
       aria-hidden="true"
+      className="h-5 w-5 shrink-0"
+      viewBox="0 0 24 24"
     >
       <path
         fill="#4285F4"
@@ -49,17 +45,33 @@ function GoogleIcon() {
   );
 }
 
+function Spinner({ light = false }: { light?: boolean }) {
+  return (
+    <span
+      aria-label="Loading"
+      role="status"
+      className={[
+        "h-4 w-4 animate-spin rounded-full border-2",
+        light
+          ? "border-white/35 border-t-white"
+          : "border-blue-200 border-t-blue-600",
+      ].join(" ")}
+    />
+  );
+}
+
 type LocationState = {
   from?: string;
 };
 
-export function Login() {
-  const {
-    login,
-    loginWithGoogle,
-    loading,
-  } = useAuth();
+const highlights = [
+  "Clear priorities",
+  "Better teamwork",
+  "Meaningful progress",
+];
 
+export function Login() {
+  const { login, loginWithGoogle, loading } = useAuth();
   const { notify } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
@@ -70,26 +82,49 @@ export function Login() {
   const [submitting, setSubmitting] = useState(false);
   const [googleSubmitting, setGoogleSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
-  const redirectAfterLogin = () => {
-    const from = (
-      location.state as LocationState | null
-    )?.from;
+  const isBusy = loading || submitting || googleSubmitting;
 
-    navigate(from || "/", {
-      replace: true,
-    });
+  const clearFeedback = () => {
+    setError("");
+    setSuccess("");
   };
 
-  const submit = async (
-    event: FormEvent<HTMLFormElement>,
-  ) => {
+  const redirectAfterLogin = () => {
+    const state = location.state as LocationState | null;
+    const destination =
+      state?.from && state.from.startsWith("/") ? state.from : "/";
+
+    navigate(destination, { replace: true });
+  };
+
+  const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setError("");
+
+    const cleanEmail = email.trim();
+    clearFeedback();
+
+    if (!cleanEmail || !password) {
+      const message = "Enter your email and password.";
+      setError(message);
+      notify(message, "error");
+      return;
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+      const message = "Enter a valid work email address.";
+      setError(message);
+      notify(message, "error");
+      return;
+    }
+
     setSubmitting(true);
 
     try {
-      await login(email, password);
+      await login(cleanEmail, password);
+      setSuccess("Signed in successfully.");
+      notify("Welcome back to your workspace.", "success");
       redirectAfterLogin();
     } catch (loginError) {
       const message =
@@ -105,16 +140,18 @@ export function Login() {
   };
 
   const continueWithGoogle = async () => {
-    setError("");
+    clearFeedback();
     setGoogleSubmitting(true);
 
     try {
       await loginWithGoogle();
+      setSuccess("Signed in successfully.");
+      notify("Welcome back to your workspace.", "success");
       redirectAfterLogin();
-    } catch (loginError) {
+    } catch (googleError) {
       const message =
-        loginError instanceof Error
-          ? loginError.message
+        googleError instanceof Error
+          ? googleError.message
           : "Google sign-in failed.";
 
       setError(message);
@@ -124,242 +161,337 @@ export function Login() {
     }
   };
 
-  const isBusy =
-    loading || submitting || googleSubmitting;
-
   return (
-    <main className="auth-page auth-page-premium">
-      <div className="auth-orb auth-orb-one" />
-      <div className="auth-orb auth-orb-two" />
+    <main className="relative min-h-screen overflow-x-hidden bg-[#f3f7ff] text-[#102957] selection:bg-blue-200 selection:text-blue-950">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none fixed -right-40 -top-40 h-[28rem] w-[28rem] animate-pulse rounded-full bg-blue-300/35 blur-3xl"
+      />
 
-      <section className="auth-showcase">
-        <div className="auth-showcase-grid" />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none fixed -bottom-48 left-1/4 h-[30rem] w-[30rem] animate-[bounce_12s_ease-in-out_infinite] rounded-full bg-cyan-300/20 blur-3xl"
+      />
 
-        <div className="auth-showcase-top">
-          <Link className="auth-brand" to="/">
-            <span className="brand-mark">
-              <Layers3 size={21} />
-            </span>
+      <div className="relative mx-auto grid min-h-screen w-full max-w-[1680px] lg:grid-cols-[minmax(0,1.08fr)_minmax(420px,0.92fr)] lg:gap-5 lg:p-5">
+        <section className="relative isolate flex min-h-[510px] flex-col overflow-hidden rounded-b-[2rem] bg-[radial-gradient(circle_at_85%_18%,rgba(125,211,252,.25),transparent_22rem),linear-gradient(135deg,#123c96_0%,#1e5fd8_52%,#092b79_100%)] px-5 py-6 text-white shadow-[0_28px_80px_rgba(24,78,180,0.32)] sm:min-h-[580px] sm:px-9 sm:py-9 lg:min-h-[calc(100vh-2.5rem)] lg:rounded-[2rem] lg:px-14 lg:py-12 xl:px-20">
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute -bottom-48 -right-36 h-[520px] w-[520px] rounded-full border border-white/15 shadow-[0_0_0_36px_rgba(255,255,255,0.035),0_0_0_74px_rgba(255,255,255,0.025)]"
+          />
 
-            <span className="auth-brand-copy">
-              <strong>creative-crew</strong>
-              <small>CREATIVE WORKSPACE</small>
-            </span>
-          </Link>
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute -left-28 -top-28 h-72 w-72 animate-pulse rounded-full bg-blue-300/15 blur-2xl"
+          />
 
-          <span className="auth-plan-badge">
-            <Sparkles size={14} />
-            PLAN. CREATE. GROW.
-          </span>
-        </div>
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 opacity-[0.08]"
+            style={{
+              backgroundImage:
+                "linear-gradient(rgba(255,255,255,.35) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.35) 1px, transparent 1px)",
+              backgroundSize: "52px 52px",
+            }}
+          />
 
-        <div className="auth-showcase-content">
-          <span className="eyebrow eyebrow-light">
-            One shared space for your best work
-          </span>
+          <div className="relative z-10 flex items-start justify-between gap-4">
+            <Link
+              to="/"
+              className="group flex min-w-0 items-center gap-3 text-white no-underline"
+            >
+              <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl border border-white/25 bg-white/15 shadow-inner shadow-white/10 transition duration-300 group-hover:rotate-6 group-hover:bg-white/25">
+                <Layers3 className="h-5 w-5" />
+              </span>
 
-          <h1>
-            Big ideas.
-            <br />
-            Creative minds.
-            <br />
-            <em>One shared space.</em>
-          </h1>
+              <span className="min-w-0">
+                <strong className="block truncate text-[17px] leading-none tracking-[-0.03em]">
+                  creative-crew
+                </strong>
 
-          <p>
-            Welcome to creative-crew — your space to
-            organize projects, collaborate with your team
-            and turn creative ideas into meaningful work.
-          </p>
+                <small className="mt-1 block text-[9px] font-bold tracking-[0.23em] text-white/60">
+                  CREATIVE WORKSPACE
+                </small>
+              </span>
+            </Link>
 
-          <div className="auth-points">
-            <span>
-              <Check size={15} />
-              Clear priorities
-            </span>
-
-            <span>
-              <Check size={15} />
-              Better teamwork
-            </span>
-
-            <span>
-              <Check size={15} />
-              Meaningful progress
-            </span>
-          </div>
-        </div>
-
-        <div className="auth-floating-card">
-          <div className="auth-floating-icon">
-            <CheckCircle2 size={18} />
-          </div>
-
-          <div>
-            <strong>Workspace clarity</strong>
-            <span>Everything moving in one rhythm.</span>
-          </div>
-
-          <ChevronRight size={17} />
-        </div>
-
-        <div className="auth-showcase-footer">
-          <span>Built for the work between the big ideas.</span>
-          <Sparkles size={17} />
-        </div>
-      </section>
-
-      <section className="auth-panel">
-        <div className="auth-form-wrap">
-          <div className="mobile-auth-brand">
-            <span className="brand-mark">
-              <Layers3 size={18} />
-            </span>
-
-            <span>
-              <strong>creative-crew</strong>
-              <small>CREATIVE WORKSPACE</small>
+            <span className="hidden shrink-0 items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-2 text-[9px] font-bold tracking-[0.17em] text-white/80 shadow-lg shadow-blue-950/10 backdrop-blur-md sm:inline-flex">
+              <Sparkles className="h-3.5 w-3.5 animate-pulse" />
+              PLAN. CREATE. GROW.
             </span>
           </div>
 
-          <div className="auth-header">
-            <span className="auth-kicker">
-              <LockKeyhole size={14} />
-              Secure workspace
+          <div className="relative z-10 my-auto max-w-3xl py-14 sm:py-20 lg:py-24">
+            <span className="inline-flex items-center gap-2 text-[10px] font-extrabold uppercase tracking-[0.18em] text-white/70">
+              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-cyan-200" />
+              One shared space for your best work
             </span>
 
-            <h2>Welcome back.</h2>
+            <h1 className="mt-5 max-w-3xl text-[clamp(2.35rem,10vw,5.8rem)] font-semibold leading-[0.96] tracking-[-0.07em] sm:text-[clamp(3.2rem,6.5vw,5.8rem)]">
+              Big ideas.
+              <br />
+              Creative minds.
+              <br />
+              <em className="not-italic text-[#8ed4ff]">
+                One shared space.
+              </em>
+            </h1>
 
-            <p>
-              Sign in to pick up exactly where your
-              team left off.
+            <p className="mt-6 max-w-xl text-sm leading-7 text-white/75 sm:text-base">
+              Welcome to creative-crew — your space to organize
+              projects, collaborate with your team and turn creative
+              ideas into meaningful work.
             </p>
+
+            <div className="mt-7 flex flex-wrap gap-x-5 gap-y-3">
+              {highlights.map((item) => (
+                <span
+                  key={item}
+                  className="flex items-center gap-2 text-xs text-white/90"
+                >
+                  <span className="grid h-5 w-5 place-items-center rounded-full bg-white/15 shadow-inner shadow-white/10">
+                    <Check className="h-3.5 w-3.5" />
+                  </span>
+                  {item}
+                </span>
+              ))}
+            </div>
           </div>
 
-          <button
-            className="google-button"
-            type="button"
-            onClick={continueWithGoogle}
-            disabled={isBusy}
-          >
-            <GoogleIcon />
-
-            <span>
-              {googleSubmitting
-                ? "Connecting to Google..."
-                : "Continue with Google"}
+          <div className="group relative z-10 flex w-full max-w-sm items-center gap-3 rounded-2xl border border-white/20 bg-white/10 p-3.5 shadow-2xl shadow-blue-950/15 backdrop-blur-xl transition duration-500 hover:-translate-y-1 hover:bg-white/15">
+            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-white/15">
+              <CheckCircle2 className="h-5 w-5 text-cyan-100" />
             </span>
 
-            <ArrowRight size={17} />
-          </button>
+            <span className="min-w-0 flex-1">
+              <strong className="block text-xs">Workspace clarity</strong>
+              <span className="mt-1 block truncate text-[11px] text-white/65">
+                Everything moving in one rhythm.
+              </span>
+            </span>
 
-          <div className="auth-divider">
-            <span>or continue with email</span>
+            <ChevronRight className="h-4 w-4 text-white/60 transition group-hover:translate-x-1" />
           </div>
 
-          <form className="auth-form" onSubmit={submit}>
-            <label className="auth-field">
-              <span className="field-label">
-                Work email
-              </span>
+          <div className="relative z-10 mt-6 flex items-center justify-between gap-5 text-xs text-white/55">
+            <span>Built for the work between the big ideas.</span>
+            <Sparkles className="h-4 w-4 shrink-0" />
+          </div>
+        </section>
 
-              <span className="auth-input-wrap">
-                <Mail size={17} />
-                <input
-                  type="email"
-                  autoComplete="email"
-                  placeholder="you@company.com"
-                  value={email}
-                  onChange={(event) => {
-                    setEmail(event.target.value);
-                    setError("");
-                  }}
-                  required
-                />
-              </span>
-            </label>
+        <section className="relative flex min-h-[700px] items-center justify-center overflow-hidden bg-white/65 px-4 py-8 sm:px-8 sm:py-12 lg:min-h-0 lg:bg-transparent lg:px-10 lg:py-10 xl:px-20">
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute right-[-5rem] top-[-5rem] h-64 w-64 animate-pulse rounded-full bg-sky-200/45 blur-3xl"
+          />
 
-            <label className="auth-field">
-              <span className="field-label">
-                Password
-              </span>
+          <div className="group relative w-full max-w-[31rem]">
+            <div
+              aria-hidden="true"
+              className="absolute -inset-1 rounded-[2.15rem] bg-gradient-to-br from-blue-300/70 via-white/60 to-cyan-300/70 opacity-70 blur-xl transition duration-700 group-hover:opacity-100"
+            />
 
-              <span className="auth-input-wrap password-field">
-                <LockKeyhole size={17} />
+            <div className="relative rounded-[2rem] border border-white/80 bg-white/80 p-5 shadow-[0_28px_90px_rgba(30,64,175,0.16)] backdrop-blur-2xl transition duration-500 group-hover:shadow-[0_32px_105px_rgba(30,64,175,0.22)] sm:p-9 lg:p-10">
+              <div className="mb-8 flex items-center gap-3 lg:hidden">
+                <span className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-blue-600 to-cyan-500 text-white shadow-lg shadow-blue-500/20">
+                  <Layers3 className="h-5 w-5" />
+                </span>
 
-                <input
-                  type={
-                    showPassword ? "text" : "password"
-                  }
-                  autoComplete="current-password"
-                  placeholder="Enter your password"
-                  value={password}
-                  onChange={(event) => {
-                    setPassword(event.target.value);
-                    setError("");
-                  }}
-                  required
-                />
+                <span>
+                  <strong className="block text-base leading-none text-[#173b82]">
+                    creative-crew
+                  </strong>
+                  <small className="mt-1 block text-[8px] font-bold tracking-[0.22em] text-slate-400">
+                    CREATIVE WORKSPACE
+                  </small>
+                </span>
+              </div>
+
+              <header>
+                <span className="inline-flex items-center gap-2 rounded-full border border-blue-100 bg-blue-50/80 px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-[0.16em] text-blue-600">
+                  <LockKeyhole className="h-3.5 w-3.5" />
+                  Secure workspace
+                </span>
+
+                <h2 className="mt-5 bg-gradient-to-br from-[#0b2554] via-[#173b82] to-blue-600 bg-clip-text text-[clamp(2.35rem,8vw,3.5rem)] font-semibold tracking-[-0.065em] text-transparent">
+                  Welcome back.
+                </h2>
+
+                <p className="mt-3 max-w-sm text-sm leading-6 text-slate-500">
+                  Sign in to pick up exactly where your team left off.
+                </p>
+              </header>
+
+              <button
+                type="button"
+                onClick={continueWithGoogle}
+                disabled={isBusy}
+                aria-busy={googleSubmitting}
+                className="group/google mt-8 flex min-h-14 w-full items-center gap-3 rounded-2xl border border-slate-200/90 bg-white/90 px-4 text-sm font-bold text-slate-700 shadow-[0_8px_22px_rgba(15,52,110,0.06)] transition duration-300 hover:-translate-y-0.5 hover:border-blue-200 hover:bg-white hover:shadow-[0_15px_32px_rgba(37,99,235,0.13)] focus:outline-none focus:ring-4 focus:ring-blue-100 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {googleSubmitting ? <Spinner /> : <GoogleIcon />}
+
+                <span className="flex-1 text-left">
+                  {googleSubmitting
+                    ? "Connecting to Google..."
+                    : "Continue with Google"}
+                </span>
+
+                {!googleSubmitting && (
+                  <ArrowRight className="h-4 w-4 text-slate-400 transition duration-300 group-hover/google:translate-x-1 group-hover/google:text-blue-600" />
+                )}
+              </button>
+
+              <div className="my-7 flex items-center gap-3 text-[11px] text-slate-400">
+                <span className="h-px flex-1 bg-gradient-to-r from-transparent via-slate-200 to-slate-200" />
+                <span className="shrink-0">or continue with email</span>
+                <span className="h-px flex-1 bg-gradient-to-l from-transparent via-slate-200 to-slate-200" />
+              </div>
+
+              <form onSubmit={submit} noValidate className="space-y-5">
+                <label className="block" htmlFor="work-email">
+                  <span className="mb-2 flex items-center gap-2 text-xs font-extrabold text-slate-700">
+                    <Mail className="h-3.5 w-3.5 text-blue-500" />
+                    Work email
+                  </span>
+
+                  <span className="group/input relative block">
+                    <Mail className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 transition group-focus-within/input:text-blue-600" />
+
+                    <input
+                      id="work-email"
+                      name="email"
+                      type="email"
+                      autoFocus
+                      autoComplete="email"
+                      autoCapitalize="none"
+                      spellCheck={false}
+                      placeholder="you@company.com"
+                      value={email}
+                      onChange={(event) => {
+                        setEmail(event.target.value);
+                        clearFeedback();
+                      }}
+                      aria-invalid={Boolean(error)}
+                      aria-describedby={error ? "login-feedback" : undefined}
+                      className="h-14 w-full rounded-2xl border border-slate-200/90 bg-blue-50/75 pl-11 pr-4 text-sm text-slate-800 outline-none transition duration-300 placeholder:text-slate-400 hover:border-blue-200 hover:bg-blue-50 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
+                    />
+                  </span>
+                </label>
+
+                <label className="block" htmlFor="workspace-password">
+                  <span className="mb-2 flex items-center gap-2 text-xs font-extrabold text-slate-700">
+                    <LockKeyhole className="h-3.5 w-3.5 text-blue-500" />
+                    Password
+                  </span>
+
+                  <span className="group/input relative block">
+                    <LockKeyhole className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 transition group-focus-within/input:text-blue-600" />
+
+                    <input
+                      id="workspace-password"
+                      name="password"
+                      type={showPassword ? "text" : "password"}
+                      autoComplete="current-password"
+                      placeholder="Enter your password"
+                      value={password}
+                      onChange={(event) => {
+                        setPassword(event.target.value);
+                        clearFeedback();
+                      }}
+                      aria-invalid={Boolean(error)}
+                      aria-describedby={error ? "login-feedback" : undefined}
+                      className="h-14 w-full rounded-2xl border border-slate-200/90 bg-blue-50/75 pl-11 pr-12 text-sm text-slate-800 outline-none transition duration-300 placeholder:text-slate-400 hover:border-blue-200 hover:bg-blue-50 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
+                    />
+
+                    <button
+                      type="button"
+                      aria-label={
+                        showPassword ? "Hide password" : "Show password"
+                      }
+                      onClick={() => setShowPassword((value) => !value)}
+                      className="absolute right-3 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-xl text-slate-400 transition hover:bg-blue-100 hover:text-blue-600 focus:outline-none focus:ring-4 focus:ring-blue-100"
+                    >
+                      {showPassword ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
+                    </button>
+                  </span>
+                </label>
+
+                {error ? (
+                  <div
+                    id="login-feedback"
+                    role="alert"
+                    aria-live="polite"
+                    className="flex items-start gap-3 rounded-2xl border border-red-200/90 bg-red-50/85 px-4 py-3 text-xs leading-5 text-red-700 shadow-sm"
+                  >
+                    <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                    <span>{error}</span>
+                  </div>
+                ) : success ? (
+                  <div
+                    id="login-feedback"
+                    role="status"
+                    aria-live="polite"
+                    className="flex items-start gap-3 rounded-2xl border border-emerald-200/90 bg-emerald-50/85 px-4 py-3 text-xs leading-5 text-emerald-700 shadow-sm"
+                  >
+                    <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
+                    <span>{success}</span>
+                  </div>
+                ) : null}
+
+                <div className="flex flex-wrap items-center justify-between gap-3 text-xs">
+                  <span className="inline-flex items-center gap-1.5 text-slate-400">
+                    <ShieldCheck className="h-4 w-4 text-emerald-500" />
+                    Secure Firebase session
+                  </span>
+
+                  <Link
+                    to="/reset-password"
+                    className="font-extrabold text-blue-600 transition hover:text-blue-800 hover:underline focus:outline-none focus:ring-4 focus:ring-blue-100"
+                  >
+                    Forgot password?
+                  </Link>
+                </div>
 
                 <button
-                  type="button"
-                  aria-label={
-                    showPassword
-                      ? "Hide password"
-                      : "Show password"
-                  }
-                  onClick={() =>
-                    setShowPassword((value) => !value)
-                  }
+                  type="submit"
+                  disabled={isBusy}
+                  aria-busy={submitting || loading}
+                  className="group/submit relative flex h-14 w-full items-center justify-center gap-3 overflow-hidden rounded-2xl bg-gradient-to-r from-blue-600 via-blue-600 to-cyan-500 px-5 text-sm font-extrabold text-white shadow-[0_15px_32px_rgba(37,99,235,0.28)] transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_20px_42px_rgba(37,99,235,0.36)] focus:outline-none focus:ring-4 focus:ring-blue-200 disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  {showPassword ? (
-                    <EyeOff size={17} />
+                  <span className="pointer-events-none absolute inset-y-0 -left-1/2 w-1/3 -skew-x-12 bg-white/25 blur-md transition duration-700 group-hover/submit:left-[120%]" />
+
+                  {submitting || loading ? (
+                    <>
+                      <Spinner light />
+                      Signing in...
+                    </>
                   ) : (
-                    <Eye size={17} />
+                    <>
+                      Sign in to workspace
+                      <ArrowRight className="h-4 w-4 transition duration-300 group-hover/submit:translate-x-1" />
+                    </>
                   )}
                 </button>
-              </span>
-            </label>
+              </form>
 
-            {error ? (
-              <div
-                className="form-alert form-alert-error"
-                role="alert"
-              >
-                {error}
+              <div className="mt-7 flex items-center justify-center gap-2 text-center text-[11px] leading-5 text-slate-400">
+                <ShieldCheck className="h-4 w-4 shrink-0 text-emerald-500" />
+                <span>Your workspace access is protected and role-aware.</span>
               </div>
-            ) : null}
 
-            <div className="auth-form-row">
-              <span className="secure-caption">
-                <ShieldCheck size={15} />
-                Secure Firebase session
-              </span>
-
-              <Link to="/reset-password">
-                Forgot password?
-              </Link>
+              <div className="mt-5 flex items-center justify-center gap-2 text-[10px] text-slate-400">
+                <Link2 className="h-3.5 w-3.5 text-blue-400" />
+                Firebase-secured workspace access
+              </div>
             </div>
-
-            <Button
-              className="auth-submit"
-              type="submit"
-              loading={isBusy}
-              icon={ArrowRight}
-            >
-              Sign in to workspace
-            </Button>
-          </form>
-
-          <div className="auth-bottom-note">
-            <ShieldCheck size={16} />
-            <span>
-              Your workspace access is protected and
-              role-aware.
-            </span>
           </div>
-        </div>
-      </section>
+        </section>
+      </div>
     </main>
   );
 }

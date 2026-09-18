@@ -1,20 +1,18 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-
 import App from "./App";
 import { ToastProvider } from "./components/ui";
 import { AuthProvider } from "./services/auth";
 import { WorkspaceProvider } from "./services/workspace";
-
 import "./style.css";
 
-const rootElement = document.getElementById("root");
+const root = document.getElementById("root");
 
-if (!rootElement) {
-  throw new Error("Root element not found");
+if (!root) {
+  throw new Error("Root element was not found.");
 }
 
-createRoot(rootElement).render(
+createRoot(root).render(
   <StrictMode>
     <AuthProvider>
       <WorkspaceProvider>

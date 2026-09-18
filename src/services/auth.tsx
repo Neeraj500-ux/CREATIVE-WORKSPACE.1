@@ -6,7 +6,6 @@ import {
   useState,
   type ReactNode,
 } from "react";
-
 import {
   GoogleAuthProvider,
   onAuthStateChanged,
@@ -14,12 +13,10 @@ import {
   signInWithEmailAndPassword,
   signInWithPopup,
   signOut,
-  type User as FirebaseUser,
 } from "firebase/auth";
-
+import type { User as FirebaseUser } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import type { UserProfile } from "../types";
-
 import {
   auth,
   db,
@@ -39,15 +36,8 @@ interface AuthContextValue {
   logout: () => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextValue | undefined>(
-  undefined,
-);
-
-const googleProvider = new GoogleAuthProvider();
-
-googleProvider.setCustomParameters({
-  prompt: "select_account",
-});
+const AuthContext = createContext<AuthContextValue | undefined>(undefined);
+const AUTH_BOOT_TIMEOUT = 8_000;
 
 type FirestoreProfile = Partial<UserProfile> & {
   email?: string | null;
@@ -59,15 +49,11 @@ async function getFirebaseProfile(
 ): Promise<UserProfile | null> {
   if (!db) return null;
 
-  const profileSnapshot = await getDoc(
-    doc(db, "users", firebaseUser.uid),
-  );
+  const snapshot = await getDoc(doc(db, "users", firebaseUser.uid));
 
-  if (!profileSnapshot.exists()) {
-    return null;
-  }
+  if (!snapshot.exists()) return null;
 
-  const data = profileSnapshot.data() as FirestoreProfile;
+  const data = snapshot.data() as FirestoreProfile;
 
   return {
     ...data,
@@ -77,16 +63,10 @@ async function getFirebaseProfile(
   } as UserProfile;
 }
 
-async function getValidatedProfile(firebaseUser: FirebaseUser) {
-  if (!auth) {
-    throw new Error("Firebase authentication is not configured.");
-  }
-
+async function getActiveProfile(firebaseUser: FirebaseUser) {
   const profile = await getFirebaseProfile(firebaseUser);
 
   if (!profile || profile.active === false) {
-    await signOut(auth).catch(() => undefined);
-
     throw new Error(
       "Your Firebase account does not have an active workspace profile.",
     );
@@ -95,25 +75,46 @@ async function getValidatedProfile(firebaseUser: FirebaseUser) {
   return profile;
 }
 
-export function AuthProvider({
-  children,
-}: {
-  children: ReactNode;
-}) {
+export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [authError, setAuthError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!firebaseEnabled || !auth) {
-      setAuthError(
-        "Firebase configured nahi hai. .env file check karein.",
-      );
+    const firebaseAuth = auth;
+
+    if (!firebaseEnabled || !firebaseAuth) {
+      setUser(null);
+      setAuthError("Firebase is not configured. Check your .env file.");
       setLoading(false);
       return;
     }
 
     let disposed = false;
+    let unsubscribe: (() => void) | undefined;
+    let settled = false;
+
+    const bootTimer = window.setTimeout(() => {
+      if (disposed || settled) return;
+
+      settled = true;
+      setLoading(false);
+      setUser(null);
+      setAuthError(
+        "Firebase authentication took too long to respond. Check your internet connection and Firebase configuration.",
+      );
+    }, AUTH_BOOT_TIMEOUT);
+
+    const finishBoot = () => {
+      if (settled) return;
+
+      settled = true;
+      window.clearTimeout(bootTimer);
+
+      if (!disposed) {
+        setLoading(false);
+      }
+    };
 
     void enableAuthPersistence().catch((error) => {
       if (!disposed) {
@@ -121,49 +122,45 @@ export function AuthProvider({
       }
     });
 
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-      void (async () => {
-        if (disposed) return;
-
-        setLoading(true);
-        setAuthError(null);
-
-        if (!firebaseUser) {
-          setUser(null);
-          setLoading(false);
-          return;
-        }
-
-        try {
-          const profile = await getFirebaseProfile(firebaseUser);
-
+    try {
+      unsubscribe = onAuthStateChanged(firebaseAuth, (firebaseUser) => {
+        void (async () => {
           if (disposed) return;
 
-          if (!profile || profile.active === false) {
+          setAuthError(null);
+
+          if (!firebaseUser) {
             setUser(null);
-            setAuthError(
-              "Active workspace profile nahi mila.",
-            );
+            finishBoot();
             return;
           }
 
-          setUser(profile);
-        } catch (error) {
-          if (!disposed) {
-            setUser(null);
-            setAuthError(readableFirebaseError(error));
+          try {
+            const profile = await getActiveProfile(firebaseUser);
+
+            if (!disposed) {
+              setUser(profile);
+            }
+          } catch (error) {
+            if (!disposed) {
+              setUser(null);
+              setAuthError(readableFirebaseError(error));
+            }
+          } finally {
+            finishBoot();
           }
-        } finally {
-          if (!disposed) {
-            setLoading(false);
-          }
-        }
-      })();
-    });
+        })();
+      });
+    } catch (error) {
+      setAuthError(readableFirebaseError(error));
+      setUser(null);
+      finishBoot();
+    }
 
     return () => {
       disposed = true;
-      unsubscribe();
+      window.clearTimeout(bootTimer);
+      unsubscribe?.();
     };
   }, []);
 
@@ -175,32 +172,36 @@ export function AuthProvider({
       authError,
 
       login: async (email, password) => {
-        setAuthError(null);
-
+        const firebaseAuth = auth;
         const cleanEmail = email.trim();
 
+        setAuthError(null);
+
         if (!cleanEmail || !password) {
-          throw new Error("Email aur password enter karein.");
+          throw new Error("Enter your email and password.");
         }
 
-        if (!firebaseEnabled || !auth) {
+        if (!firebaseEnabled || !firebaseAuth) {
           const message =
-            "Firebase configured nahi hai. .env file check karein.";
-
+            "Firebase is not configured. Check your .env file.";
           setAuthError(message);
           throw new Error(message);
         }
 
         try {
           const result = await signInWithEmailAndPassword(
-            auth,
+            firebaseAuth,
             cleanEmail,
             password,
           );
 
-          const profile = await getValidatedProfile(result.user);
-
-          setUser(profile);
+          try {
+            const profile = await getActiveProfile(result.user);
+            setUser(profile);
+          } catch (profileError) {
+            await signOut(firebaseAuth).catch(() => undefined);
+            throw profileError;
+          }
         } catch (error) {
           const message = readableFirebaseError(error);
           setAuthError(message);
@@ -209,25 +210,29 @@ export function AuthProvider({
       },
 
       loginWithGoogle: async () => {
+        const firebaseAuth = auth;
+
         setAuthError(null);
 
-        if (!firebaseEnabled || !auth) {
+        if (!firebaseEnabled || !firebaseAuth) {
           const message =
-            "Firebase configured nahi hai. .env file check karein.";
-
+            "Firebase is not configured. Check your .env file.";
           setAuthError(message);
           throw new Error(message);
         }
 
         try {
-          const result = await signInWithPopup(
-            auth,
-            googleProvider,
-          );
+          const provider = new GoogleAuthProvider();
+          provider.setCustomParameters({ prompt: "select_account" });
 
-          const profile = await getValidatedProfile(result.user);
-
-          setUser(profile);
+          const result = await signInWithPopup(firebaseAuth, provider);
+          try {
+            const profile = await getActiveProfile(result.user);
+            setUser(profile);
+          } catch (profileError) {
+            await signOut(firebaseAuth).catch(() => undefined);
+            throw profileError;
+          }
         } catch (error) {
           const message = readableFirebaseError(error);
           setAuthError(message);
@@ -236,20 +241,21 @@ export function AuthProvider({
       },
 
       resetPassword: async (email) => {
+        const firebaseAuth = auth;
         const cleanEmail = email.trim();
 
         if (!cleanEmail) {
-          throw new Error("Email address enter karein.");
+          throw new Error("Enter your email address.");
         }
 
-        if (!firebaseEnabled || !auth) {
+        if (!firebaseEnabled || !firebaseAuth) {
           throw new Error(
-            "Firebase configured nahi hai. .env file check karein.",
+            "Firebase is not configured. Check your .env file.",
           );
         }
 
         try {
-          await sendPasswordResetEmail(auth, cleanEmail);
+          await sendPasswordResetEmail(firebaseAuth, cleanEmail);
         } catch (error) {
           const message = readableFirebaseError(error);
           setAuthError(message);
@@ -269,9 +275,7 @@ export function AuthProvider({
   );
 
   return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
+    <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
   );
 }
 
