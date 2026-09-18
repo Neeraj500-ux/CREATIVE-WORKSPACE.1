@@ -1,0 +1,84 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function profile() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function hasRole(role) {
+      return signedIn() && profile().role == role;
+    }
+
+    function director() {
+      return hasRole('director');
+    }
+
+    function sameOrg(orgId) {
+      return signedIn() && profile().organizationId == orgId;
+    }
+
+    function activeUser() {
+      return signedIn() && profile().active == true;
+    }
+
+    function canReadWorkspace(orgId) {
+      return activeUser() && sameOrg(orgId);
+    }
+
+    function immutableIdentity() {
+      return request.resource.data.organizationId == resource.data.organizationId
+        && request.resource.data.createdBy == resource.data.createdBy;
+    }
+
+    match /users/{userId} {
+      allow read: if canReadWorkspace(resource.data.organizationId)
+        && (director() || resource.data.id == request.auth.uid || resource.data.role != 'director');
+      allow create: if director() && canReadWorkspace(request.resource.data.organizationId);
+      allow update: if director()
+        || (activeUser() && userId == request.auth.uid
+          && request.resource.data.role == resource.data.role
+          && request.resource.data.organizationId == resource.data.organizationId
+          && request.resource.data.permissions == resource.data.permissions);
+      allow delete: if director();
+    }
+
+    match /organizations/{organizationId} {
+      allow read: if canReadWorkspace(organizationId);
+      allow write: if director() && sameOrg(organizationId);
+    }
+
+    match /{collection}/{documentId} {
+      allow read: if collection in [
+        'departments', 'teams', 'clients', 'spaces', 'folders', 'projects', 'tasks',
+        'taskChecklists', 'comments', 'files', 'docs', 'attendance', 'timesheets',
+        'requests', 'approvals', 'notifications', 'finance', 'goals', 'automationRules',
+        'auditLogs'
+      ] && canReadWorkspace(resource.data.organizationId);
+
+      allow create: if collection in [
+        'departments', 'teams', 'clients', 'spaces', 'folders', 'projects', 'tasks',
+        'taskChecklists', 'comments', 'files', 'docs', 'attendance', 'timesheets',
+        'requests', 'approvals', 'notifications', 'finance', 'goals', 'automationRules',
+        'auditLogs'
+      ] && canReadWorkspace(request.resource.data.organizationId)
+        && (director() || collection not in ['finance', 'automationRules']);
+
+      allow update: if collection in [
+        'departments', 'teams', 'clients', 'spaces', 'folders', 'projects', 'tasks',
+        'taskChecklists', 'comments', 'files', 'docs', 'attendance', 'timesheets',
+        'requests', 'approvals', 'notifications', 'finance', 'goals', 'automationRules',
+        'auditLogs'
+      ] && canReadWorkspace(resource.data.organizationId)
+        && immutableIdentity()
+        && (director() || (collection not in ['finance', 'automationRules', 'auditLogs']
+          && request.resource.data.updatedBy == request.auth.uid));
+
+      allow delete: if director() && canReadWorkspace(resource.data.organizationId);
+    }
+  }
+}
