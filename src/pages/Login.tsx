@@ -162,45 +162,40 @@ export function Login() {
   };
 
   return (
-    <main className="relative min-h-screen overflow-x-hidden bg-[#f3f7ff] text-[#102957] selection:bg-blue-200 selection:text-blue-950">
+    <main className="relative min-h-screen overflow-x-hidden bg-[#f5f9ff] text-[#102957] selection:bg-blue-200 selection:text-blue-950">
       <div
         aria-hidden="true"
-        className="pointer-events-none fixed -right-40 -top-40 h-[28rem] w-[28rem] animate-pulse rounded-full bg-blue-300/35 blur-3xl"
+        className="pointer-events-none fixed -right-40 -top-40 h-[28rem] w-[28rem] animate-pulse rounded-full bg-blue-300/25 blur-3xl"
       />
 
       <div
         aria-hidden="true"
-        className="pointer-events-none fixed -bottom-48 left-1/4 h-[30rem] w-[30rem] animate-[bounce_12s_ease-in-out_infinite] rounded-full bg-cyan-300/20 blur-3xl"
+        className="pointer-events-none fixed -bottom-48 left-1/4 h-[30rem] w-[30rem] animate-[bounce_12s_ease-in-out_infinite] rounded-full bg-cyan-200/30 blur-3xl"
       />
 
       <div className="relative mx-auto grid min-h-screen w-full max-w-[1680px] lg:grid-cols-[minmax(0,1.08fr)_minmax(420px,0.92fr)] lg:gap-5 lg:p-5">
-        <section className="relative isolate flex min-h-[510px] flex-col overflow-hidden rounded-b-[2rem] bg-[radial-gradient(circle_at_85%_18%,rgba(125,211,252,.25),transparent_22rem),linear-gradient(135deg,#123c96_0%,#1e5fd8_52%,#092b79_100%)] px-5 py-6 text-white shadow-[0_28px_80px_rgba(24,78,180,0.32)] sm:min-h-[580px] sm:px-9 sm:py-9 lg:min-h-[calc(100vh-2.5rem)] lg:rounded-[2rem] lg:px-14 lg:py-12 xl:px-20">
+        <section className="relative isolate flex min-h-[510px] flex-col overflow-hidden rounded-b-[2rem] border border-white/90 bg-gradient-to-br from-white via-[#eff7ff] to-[#d9ecff] px-5 py-6 text-[#173b82] shadow-[0_28px_80px_rgba(56,105,180,0.18)] sm:min-h-[580px] sm:px-9 sm:py-9 lg:min-h-[calc(100vh-2.5rem)] lg:rounded-[2rem] lg:px-14 lg:py-12 xl:px-20">
           <div
             aria-hidden="true"
-            className="pointer-events-none absolute -bottom-48 -right-36 h-[520px] w-[520px] rounded-full border border-white/15 shadow-[0_0_0_36px_rgba(255,255,255,0.035),0_0_0_74px_rgba(255,255,255,0.025)]"
+            className="pointer-events-none absolute -bottom-48 -right-36 h-[520px] w-[520px] rounded-full border border-blue-300/25 shadow-[0_0_0_36px_rgba(37,99,235,0.05),0_0_0_74px_rgba(14,165,233,0.04)]"
           />
 
           <div
             aria-hidden="true"
-            className="pointer-events-none absolute -left-28 -top-28 h-72 w-72 animate-pulse rounded-full bg-blue-300/15 blur-2xl"
+            className="pointer-events-none absolute -left-28 -top-28 h-72 w-72 animate-pulse rounded-full bg-blue-300/35 blur-2xl"
           />
 
           <div
             aria-hidden="true"
-            className="pointer-events-none absolute inset-0 opacity-[0.08]"
-            style={{
-              backgroundImage:
-                "linear-gradient(rgba(255,255,255,.35) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.35) 1px, transparent 1px)",
-              backgroundSize: "52px 52px",
-            }}
+            className="pointer-events-none absolute inset-0 opacity-[0.08] [background-image:linear-gradient(rgba(37,99,235,.12)_1px,transparent_1px),linear-gradient(90deg,rgba(37,99,235,.12)_1px,transparent_1px)] [background-size:52px_52px]"
           />
 
           <div className="relative z-10 flex items-start justify-between gap-4">
             <Link
               to="/"
-              className="group flex min-w-0 items-center gap-3 text-white no-underline"
+              className="group flex min-w-0 items-center gap-3 text-[#173b82] no-underline"
             >
-              <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl border border-white/25 bg-white/15 shadow-inner shadow-white/10 transition duration-300 group-hover:rotate-6 group-hover:bg-white/25">
+              <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl border border-blue-200/80 bg-white/75 text-blue-600 shadow-[0_10px_24px_rgba(37,99,235,0.1)] transition duration-300 group-hover:rotate-6 group-hover:bg-white">
                 <Layers3 className="h-5 w-5" />
               </span>
 
@@ -209,21 +204,21 @@ export function Login() {
                   creative-crew
                 </strong>
 
-                <small className="mt-1 block text-[9px] font-bold tracking-[0.23em] text-white/60">
+                <small className="mt-1 block text-[9px] font-bold tracking-[0.23em] text-blue-600/60">
                   CREATIVE WORKSPACE
                 </small>
               </span>
             </Link>
 
-            <span className="hidden shrink-0 items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-2 text-[9px] font-bold tracking-[0.17em] text-white/80 shadow-lg shadow-blue-950/10 backdrop-blur-md sm:inline-flex">
+            <span className="hidden shrink-0 items-center gap-2 rounded-full border border-blue-200/80 bg-white/75 px-3 py-2 text-[9px] font-bold tracking-[0.17em] text-blue-700 shadow-lg shadow-blue-500/10 backdrop-blur-md sm:inline-flex">
               <Sparkles className="h-3.5 w-3.5 animate-pulse" />
               PLAN. CREATE. GROW.
             </span>
           </div>
 
           <div className="relative z-10 my-auto max-w-3xl py-14 sm:py-20 lg:py-24">
-            <span className="inline-flex items-center gap-2 text-[10px] font-extrabold uppercase tracking-[0.18em] text-white/70">
-              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-cyan-200" />
+            <span className="inline-flex items-center gap-2 text-[10px] font-extrabold uppercase tracking-[0.18em] text-blue-600/80">
+              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-blue-500" />
               One shared space for your best work
             </span>
 
@@ -232,12 +227,12 @@ export function Login() {
               <br />
               Creative minds.
               <br />
-              <em className="not-italic text-[#8ed4ff]">
+                <em className="not-italic text-blue-600">
                 One shared space.
               </em>
             </h1>
 
-            <p className="mt-6 max-w-xl text-sm leading-7 text-white/75 sm:text-base">
+            <p className="mt-6 max-w-xl text-sm leading-7 text-slate-600 sm:text-base">
               Welcome to creative-crew — your space to organize
               projects, collaborate with your team and turn creative
               ideas into meaningful work.
@@ -247,51 +242,83 @@ export function Login() {
               {highlights.map((item) => (
                 <span
                   key={item}
-                  className="flex items-center gap-2 text-xs text-white/90"
+                  className="flex items-center gap-2 text-xs text-slate-700"
                 >
-                  <span className="grid h-5 w-5 place-items-center rounded-full bg-white/15 shadow-inner shadow-white/10">
+                  <span className="grid h-5 w-5 place-items-center rounded-full bg-blue-100 text-blue-600 shadow-inner shadow-white/80">
                     <Check className="h-3.5 w-3.5" />
                   </span>
                   {item}
                 </span>
               ))}
             </div>
+
+            <div className="mt-8 grid max-w-xl grid-cols-3 gap-2 sm:gap-3">
+              <div className="min-w-0 rounded-2xl border border-white/90 bg-white/65 p-3 shadow-[0_12px_30px_rgba(37,99,235,0.08)] backdrop-blur-xl transition duration-300 hover:-translate-y-1 hover:bg-white/90">
+                <Sparkles className="h-4 w-4 text-blue-600" />
+                <strong className="mt-3 block truncate text-[11px] font-extrabold text-[#173b82] sm:text-xs">
+                  Focus
+                </strong>
+                <span className="mt-1 block truncate text-[10px] text-slate-500 sm:text-[11px]">
+                  Less noise
+                </span>
+              </div>
+
+              <div className="min-w-0 rounded-2xl border border-white/90 bg-white/65 p-3 shadow-[0_12px_30px_rgba(37,99,235,0.08)] backdrop-blur-xl transition duration-300 hover:-translate-y-1 hover:bg-white/90">
+                <Link2 className="h-4 w-4 text-cyan-600" />
+                <strong className="mt-3 block truncate text-[11px] font-extrabold text-[#173b82] sm:text-xs">
+                  Connect
+                </strong>
+                <span className="mt-1 block truncate text-[10px] text-slate-500 sm:text-[11px]">
+                  One rhythm
+                </span>
+              </div>
+
+              <div className="min-w-0 rounded-2xl border border-white/90 bg-white/65 p-3 shadow-[0_12px_30px_rgba(37,99,235,0.08)] backdrop-blur-xl transition duration-300 hover:-translate-y-1 hover:bg-white/90">
+                <ShieldCheck className="h-4 w-4 text-emerald-600" />
+                <strong className="mt-3 block truncate text-[11px] font-extrabold text-[#173b82] sm:text-xs">
+                  Deliver
+                </strong>
+                <span className="mt-1 block truncate text-[10px] text-slate-500 sm:text-[11px]">
+                  Move forward
+                </span>
+              </div>
+            </div>
           </div>
 
-          <div className="group relative z-10 flex w-full max-w-sm items-center gap-3 rounded-2xl border border-white/20 bg-white/10 p-3.5 shadow-2xl shadow-blue-950/15 backdrop-blur-xl transition duration-500 hover:-translate-y-1 hover:bg-white/15">
-            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-white/15">
-              <CheckCircle2 className="h-5 w-5 text-cyan-100" />
+          <div className="group relative z-10 flex w-full max-w-sm items-center gap-3 rounded-2xl border border-white/90 bg-white/70 p-3.5 text-[#173b82] shadow-[0_18px_42px_rgba(37,99,235,0.12)] backdrop-blur-xl transition duration-500 hover:-translate-y-1 hover:bg-white/90">
+            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-blue-100">
+              <CheckCircle2 className="h-5 w-5 text-blue-600" />
             </span>
 
             <span className="min-w-0 flex-1">
               <strong className="block text-xs">Workspace clarity</strong>
-              <span className="mt-1 block truncate text-[11px] text-white/65">
+              <span className="mt-1 block truncate text-[11px] text-slate-500">
                 Everything moving in one rhythm.
               </span>
             </span>
 
-            <ChevronRight className="h-4 w-4 text-white/60 transition group-hover:translate-x-1" />
+            <ChevronRight className="h-4 w-4 text-blue-500 transition group-hover:translate-x-1" />
           </div>
 
-          <div className="relative z-10 mt-6 flex items-center justify-between gap-5 text-xs text-white/55">
+          <div className="relative z-10 mt-6 flex items-center justify-between gap-5 text-xs text-slate-500">
             <span>Built for the work between the big ideas.</span>
-            <Sparkles className="h-4 w-4 shrink-0" />
+            <Sparkles className="h-4 w-4 shrink-0 text-blue-500" />
           </div>
         </section>
 
-        <section className="relative flex min-h-[700px] items-center justify-center overflow-hidden bg-white/65 px-4 py-8 sm:px-8 sm:py-12 lg:min-h-0 lg:bg-transparent lg:px-10 lg:py-10 xl:px-20">
+        <section className="relative flex min-h-[700px] items-center justify-center overflow-hidden bg-white/45 px-3 py-8 sm:px-8 sm:py-12 lg:min-h-0 lg:bg-transparent lg:px-10 lg:py-10 xl:px-20">
           <div
             aria-hidden="true"
-            className="pointer-events-none absolute right-[-5rem] top-[-5rem] h-64 w-64 animate-pulse rounded-full bg-sky-200/45 blur-3xl"
+            className="pointer-events-none absolute right-[-5rem] top-[-5rem] h-64 w-64 animate-pulse rounded-full bg-sky-200/55 blur-3xl"
           />
 
           <div className="group relative w-full max-w-[31rem]">
             <div
               aria-hidden="true"
-              className="absolute -inset-1 rounded-[2.15rem] bg-gradient-to-br from-blue-300/70 via-white/60 to-cyan-300/70 opacity-70 blur-xl transition duration-700 group-hover:opacity-100"
+              className="absolute -inset-1 rounded-[2.15rem] bg-gradient-to-br from-blue-300/80 via-white/80 to-cyan-300/80 opacity-75 blur-xl transition duration-700 group-hover:opacity-100"
             />
 
-            <div className="relative rounded-[2rem] border border-white/80 bg-white/80 p-5 shadow-[0_28px_90px_rgba(30,64,175,0.16)] backdrop-blur-2xl transition duration-500 group-hover:shadow-[0_32px_105px_rgba(30,64,175,0.22)] sm:p-9 lg:p-10">
+            <div className="relative rounded-[2rem] border border-white/95 bg-white/90 p-5 shadow-[0_28px_90px_rgba(30,64,175,0.14)] backdrop-blur-2xl transition duration-500 group-hover:shadow-[0_32px_105px_rgba(30,64,175,0.2)] sm:p-9 lg:p-10">
               <div className="mb-8 flex items-center gap-3 lg:hidden">
                 <span className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-blue-600 to-cyan-500 text-white shadow-lg shadow-blue-500/20">
                   <Layers3 className="h-5 w-5" />
@@ -313,9 +340,16 @@ export function Login() {
                   Secure workspace
                 </span>
 
-                <h2 className="mt-5 bg-gradient-to-br from-[#0b2554] via-[#173b82] to-blue-600 bg-clip-text text-[clamp(2.35rem,8vw,3.5rem)] font-semibold tracking-[-0.065em] text-transparent">
+                <h2 className="mt-5 bg-gradient-to-br from-[#0b2554] via-[#173b82] to-blue-600 bg-clip-text text-[clamp(2.25rem,8vw,3.5rem)] font-semibold leading-[0.98] tracking-[-0.065em] text-transparent">
                   Welcome back.
                 </h2>
+
+                <div className="mt-4 flex flex-wrap items-center gap-2.5">
+                  <span className="h-1 w-12 rounded-full bg-gradient-to-r from-blue-600 to-cyan-400" />
+                  <span className="text-[10px] font-extrabold uppercase tracking-[0.15em] text-blue-600/75">
+                    Your creative space is ready
+                  </span>
+                </div>
 
                 <p className="mt-3 max-w-sm text-sm leading-6 text-slate-500">
                   Sign in to pick up exactly where your team left off.
@@ -327,7 +361,7 @@ export function Login() {
                 onClick={continueWithGoogle}
                 disabled={isBusy}
                 aria-busy={googleSubmitting}
-                className="group/google mt-8 flex min-h-14 w-full items-center gap-3 rounded-2xl border border-slate-200/90 bg-white/90 px-4 text-sm font-bold text-slate-700 shadow-[0_8px_22px_rgba(15,52,110,0.06)] transition duration-300 hover:-translate-y-0.5 hover:border-blue-200 hover:bg-white hover:shadow-[0_15px_32px_rgba(37,99,235,0.13)] focus:outline-none focus:ring-4 focus:ring-blue-100 disabled:cursor-not-allowed disabled:opacity-60"
+                className="group/google mt-8 flex min-h-14 w-full items-center gap-3 rounded-2xl border border-slate-200/90 bg-white/85 px-4 text-sm font-bold text-slate-700 shadow-[0_8px_22px_rgba(15,52,110,0.06)] backdrop-blur-xl transition duration-300 hover:-translate-y-0.5 hover:scale-[1.01] hover:border-blue-200 hover:bg-white hover:shadow-[0_15px_32px_rgba(37,99,235,0.13)] focus:outline-none focus:ring-4 focus:ring-blue-100 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {googleSubmitting ? <Spinner /> : <GoogleIcon />}
 
@@ -374,7 +408,7 @@ export function Login() {
                       }}
                       aria-invalid={Boolean(error)}
                       aria-describedby={error ? "login-feedback" : undefined}
-                      className="h-14 w-full rounded-2xl border border-slate-200/90 bg-blue-50/75 pl-11 pr-4 text-sm text-slate-800 outline-none transition duration-300 placeholder:text-slate-400 hover:border-blue-200 hover:bg-blue-50 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
+                      className="h-14 w-full rounded-2xl border border-slate-200/90 bg-blue-50/80 pl-11 pr-4 text-sm text-slate-800 shadow-[inset_0_1px_0_rgba(255,255,255,0.85)] outline-none transition duration-300 placeholder:text-slate-400 hover:border-blue-200 hover:bg-blue-50 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
                     />
                   </span>
                 </label>
@@ -401,7 +435,7 @@ export function Login() {
                       }}
                       aria-invalid={Boolean(error)}
                       aria-describedby={error ? "login-feedback" : undefined}
-                      className="h-14 w-full rounded-2xl border border-slate-200/90 bg-blue-50/75 pl-11 pr-12 text-sm text-slate-800 outline-none transition duration-300 placeholder:text-slate-400 hover:border-blue-200 hover:bg-blue-50 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
+                      className="h-14 w-full rounded-2xl border border-slate-200/90 bg-blue-50/80 pl-11 pr-12 text-sm text-slate-800 shadow-[inset_0_1px_0_rgba(255,255,255,0.85)] outline-none transition duration-300 placeholder:text-slate-400 hover:border-blue-200 hover:bg-blue-50 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
                     />
 
                     <button
@@ -461,7 +495,7 @@ export function Login() {
                   type="submit"
                   disabled={isBusy}
                   aria-busy={submitting || loading}
-                  className="group/submit relative flex h-14 w-full items-center justify-center gap-3 overflow-hidden rounded-2xl bg-gradient-to-r from-blue-600 via-blue-600 to-cyan-500 px-5 text-sm font-extrabold text-white shadow-[0_15px_32px_rgba(37,99,235,0.28)] transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_20px_42px_rgba(37,99,235,0.36)] focus:outline-none focus:ring-4 focus:ring-blue-200 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="group/submit relative flex h-14 w-full items-center justify-center gap-3 overflow-hidden rounded-2xl bg-gradient-to-r from-blue-600 via-blue-500 to-cyan-500 px-5 text-sm font-extrabold text-white shadow-[0_15px_32px_rgba(37,99,235,0.28)] transition duration-300 hover:-translate-y-0.5 hover:scale-[1.01] hover:shadow-[0_20px_42px_rgba(37,99,235,0.36)] focus:outline-none focus:ring-4 focus:ring-blue-200 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   <span className="pointer-events-none absolute inset-y-0 -left-1/2 w-1/3 -skew-x-12 bg-white/25 blur-md transition duration-700 group-hover/submit:left-[120%]" />
 
