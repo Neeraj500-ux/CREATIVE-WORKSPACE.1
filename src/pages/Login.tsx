@@ -234,7 +234,7 @@ export function Login() {
         className="pointer-events-none fixed left-[-12rem] top-1/3 h-[25rem] w-[25rem] rounded-full bg-indigo-200/20 blur-3xl"
       />
 
-      <div className="relative mx-auto grid min-h-screen w-full max-w-[1720px] gap-3 p-2 sm:gap-5 sm:p-5 lg:grid-cols-[minmax(0,1.04fr)_minmax(30rem,0.96fr)]">
+      <div className="relative mx-auto grid min-h-screen w-full max-w-[1720px] gap-5 p-2 sm:gap-6 sm:p-5 lg:gap-8 lg:grid-cols-[minmax(0,0.94fr)_minmax(34rem,1.06fr)]">
         <section className="relative isolate flex min-h-[720px] flex-col overflow-hidden rounded-[1.8rem] border border-white/95 bg-[linear-gradient(135deg,#ffffff_0%,#f2f8ff_47%,#dff3ff_100%)] px-5 py-6 text-[#173b82] shadow-[0_28px_80px_rgba(56,105,180,0.18)] sm:min-h-[760px] sm:rounded-[2rem] sm:px-9 sm:py-9 lg:min-h-[calc(100vh-2.5rem)] lg:px-12 lg:py-11 xl:px-16">
           <div
             aria-hidden="true"
@@ -385,7 +385,7 @@ export function Login() {
           </div>
         </section>
 
-        <section className="relative flex min-h-[760px] items-center justify-center overflow-hidden rounded-[1.8rem] bg-white/35 px-1 py-5 sm:rounded-[2rem] sm:px-5 sm:py-10 lg:min-h-[calc(100vh-2.5rem)] lg:bg-transparent lg:px-8 lg:py-12 xl:px-14">
+        <section className="relative flex min-h-[780px] items-center justify-center overflow-hidden rounded-[1.8rem] bg-white/35 px-1 py-5 sm:rounded-[2rem] sm:px-5 sm:py-10 lg:min-h-[calc(100vh-2.5rem)] lg:bg-transparent lg:px-10 lg:py-12 xl:px-16">
           <div
             aria-hidden="true"
             className="pointer-events-none absolute right-[-4rem] top-[-4rem] h-72 w-72 rounded-full bg-sky-200/55 blur-3xl"
@@ -395,13 +395,13 @@ export function Login() {
             className="pointer-events-none absolute bottom-[-5rem] left-[-5rem] h-64 w-64 rounded-full bg-blue-200/35 blur-3xl"
           />
 
-          <div className="group relative w-full max-w-[37rem]">
+          <div className="group relative w-full max-w-[42rem]">
             <div
               aria-hidden="true"
               className="absolute -inset-1 rounded-[2.25rem] bg-gradient-to-br from-blue-300/85 via-white/90 to-cyan-300/85 opacity-80 blur-xl transition duration-700 group-hover:opacity-100"
             />
 
-            <div className="relative rounded-[2rem] border border-white/95 bg-white/95 p-6 shadow-[0_28px_90px_rgba(30,64,175,0.16)] backdrop-blur-2xl transition duration-500 group-hover:shadow-[0_32px_105px_rgba(30,64,175,0.23)] sm:p-10 lg:p-11 xl:p-12">
+            <div className="relative rounded-[2.25rem] border border-blue-100/80 bg-gradient-to-br from-white via-white/95 to-blue-50/85 p-7 shadow-[0_30px_100px_rgba(30,64,175,0.18)] backdrop-blur-2xl transition duration-500 group-hover:shadow-[0_36px_120px_rgba(30,64,175,0.27)] sm:p-12 lg:p-14 xl:p-16">
               <div className="mb-8 flex items-center gap-3 lg:hidden">
                 <span className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-blue-600 to-cyan-500 text-white shadow-lg shadow-blue-500/20">
                   <Layers3 className="h-5 w-5" />
@@ -422,18 +422,18 @@ export function Login() {
                   Secure workspace
                 </span>
 
-                <h2 className="mt-5 bg-gradient-to-br from-[#0b2554] via-[#173b82] to-blue-600 bg-clip-text text-[clamp(2.25rem,7vw,3.65rem)] font-semibold leading-[0.98] tracking-[-0.065em] text-transparent">
+                <h2 className="mt-6 bg-gradient-to-br from-[#0b2554] via-[#173b82] to-blue-600 bg-clip-text text-[clamp(3rem,6vw,5rem)] font-semibold leading-[0.94] tracking-[-0.075em] text-transparent">
                   Welcome back.
                 </h2>
 
-                <div className="mt-4 flex flex-wrap items-center gap-2.5">
-                  <span className="h-1 w-12 rounded-full bg-gradient-to-r from-blue-600 to-cyan-400" />
+                <div className="mt-6 flex flex-wrap items-center gap-3">
+                  <span className="h-1.5 w-16 rounded-full bg-gradient-to-r from-blue-600 via-blue-500 to-cyan-400 shadow-[0_0_16px_rgba(37,99,235,0.32)]" />
                   <span className="text-[10px] font-extrabold uppercase tracking-[0.15em] text-blue-600/75">
                     Your creative space is ready
                   </span>
                 </div>
 
-                <p className="mt-3 max-w-sm text-sm leading-6 text-slate-500">
+                <p className="mt-5 max-w-md text-sm leading-7 text-slate-500 sm:text-base">
                   Sign in to pick up exactly where your team left off.
                 </p>
               </header>
@@ -443,7 +443,7 @@ export function Login() {
                 onClick={continueWithGoogle}
                 disabled={isBusy}
                 aria-busy={googleSubmitting}
-                className="group/google relative mt-8 flex min-h-14 w-full items-center justify-center rounded-2xl border border-slate-200/90 bg-white/90 px-12 text-sm font-bold text-slate-700 shadow-[0_8px_22px_rgba(15,52,110,0.06)] backdrop-blur-xl transition duration-300 hover:-translate-y-0.5 hover:border-blue-200 hover:bg-white hover:shadow-[0_15px_32px_rgba(37,99,235,0.13)] focus:outline-none focus:ring-4 focus:ring-blue-100 disabled:cursor-not-allowed disabled:opacity-60"
+                className="group/google relative mt-10 flex min-h-16 w-full items-center justify-center rounded-[1.35rem] border border-blue-100/90 bg-white/95 px-12 text-base font-semibold text-slate-700 shadow-[0_12px_28px_rgba(15,52,110,0.07)] backdrop-blur-xl transition duration-300 hover:-translate-y-1 hover:border-blue-300 hover:bg-white hover:shadow-[0_20px_40px_rgba(37,99,235,0.16)] focus:outline-none focus:ring-4 focus:ring-blue-100 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <span className="flex items-center justify-center gap-3 text-center">
                   {googleSubmitting ? <Spinner /> : <GoogleIcon />}
@@ -458,15 +458,15 @@ export function Login() {
                 )}
               </button>
 
-              <div className="my-7 flex items-center gap-3 text-[11px] text-slate-400">
+              <div className="my-9 flex items-center gap-3 text-[11px] text-slate-400">
                 <span className="h-px flex-1 bg-gradient-to-r from-transparent via-slate-200 to-slate-200" />
                 <span className="shrink-0">or continue with email</span>
                 <span className="h-px flex-1 bg-gradient-to-l from-transparent via-slate-200 to-transparent" />
               </div>
 
-              <form onSubmit={submit} noValidate className="space-y-5">
+              <form onSubmit={submit} noValidate className="space-y-6">
                 <label className="block" htmlFor="work-email">
-                  <span className="mb-2 block text-xs font-extrabold text-slate-700">
+                  <span className="mb-2.5 block text-sm font-extrabold text-slate-700">
                     Work email
                   </span>
                   <span className="group/input relative block">
@@ -487,13 +487,13 @@ export function Login() {
                       }}
                       aria-invalid={Boolean(error)}
                       aria-describedby={error ? "login-feedback" : undefined}
-                      className="h-14 w-full rounded-2xl border border-slate-200/90 bg-blue-50/80 pl-11 pr-4 text-sm text-slate-800 shadow-[inset_0_1px_0_rgba(255,255,255,0.85)] outline-none transition duration-300 placeholder:text-slate-400 hover:border-blue-200 hover:bg-blue-50 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
+                      className="h-16 w-full rounded-[1.35rem] border border-blue-100/90 bg-blue-50/80 pl-12 pr-4 text-sm text-slate-800 shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_8px_20px_rgba(37,99,235,0.04)] outline-none transition duration-300 placeholder:text-slate-400 hover:border-blue-200 hover:bg-blue-50 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
                     />
                   </span>
                 </label>
 
                 <label className="block" htmlFor="workspace-password">
-                  <span className="mb-2 block text-xs font-extrabold text-slate-700">
+                  <span className="mb-2.5 block text-sm font-extrabold text-slate-700">
                     Password
                   </span>
                   <span className="group/input relative block">
@@ -511,7 +511,7 @@ export function Login() {
                       }}
                       aria-invalid={Boolean(error)}
                       aria-describedby={error ? "login-feedback" : undefined}
-                      className="h-14 w-full rounded-2xl border border-slate-200/90 bg-blue-50/80 pl-11 pr-12 text-sm text-slate-800 shadow-[inset_0_1px_0_rgba(255,255,255,0.85)] outline-none transition duration-300 placeholder:text-slate-400 hover:border-blue-200 hover:bg-blue-50 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
+                      className="h-16 w-full rounded-[1.35rem] border border-blue-100/90 bg-blue-50/80 pl-12 pr-12 text-sm text-slate-800 shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_8px_20px_rgba(37,99,235,0.04)] outline-none transition duration-300 placeholder:text-slate-400 hover:border-blue-200 hover:bg-blue-50 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
                     />
                     <button
                       type="button"
@@ -571,7 +571,7 @@ export function Login() {
                   type="submit"
                   disabled={isBusy}
                   aria-busy={submitting || loading}
-                  className="group/submit relative flex h-14 w-full items-center justify-center gap-3 overflow-hidden rounded-2xl bg-gradient-to-r from-blue-600 via-blue-500 to-cyan-500 px-5 text-sm font-extrabold text-white shadow-[0_15px_32px_rgba(37,99,235,0.28)] transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_20px_42px_rgba(37,99,235,0.36)] focus:outline-none focus:ring-4 focus:ring-blue-200 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="group/submit relative flex h-16 w-full items-center justify-center gap-3 overflow-hidden rounded-[1.35rem] bg-gradient-to-r from-blue-600 via-blue-500 to-cyan-500 px-5 text-base font-extrabold text-white shadow-[0_18px_38px_rgba(37,99,235,0.3)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_24px_48px_rgba(37,99,235,0.38)] focus:outline-none focus:ring-4 focus:ring-blue-200 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   <span className="pointer-events-none absolute inset-y-0 -left-1/2 w-1/3 -skew-x-12 bg-white/25 blur-md transition duration-700 group-hover/submit:left-[120%]" />
                   {submitting || loading ? (
@@ -588,7 +588,7 @@ export function Login() {
                 </button>
               </form>
 
-              <div className="mt-7 flex items-center justify-center gap-2 text-center text-[11px] leading-5 text-slate-400">
+              <div className="mt-9 flex items-center justify-center gap-2 text-center text-[11px] leading-5 text-slate-400">
                 <ShieldCheck className="h-4 w-4 shrink-0 text-emerald-500" />
                 <span>Your workspace access is protected and role-aware.</span>
               </div>
