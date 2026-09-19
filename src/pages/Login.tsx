@@ -1,10 +1,11 @@
 import { useState, type FormEvent } from "react";
 import {
   ArrowRight,
+  BarChart3,
+  CalendarClock,
   Check,
   CheckCircle2,
   ChevronRight,
-  AlertCircle,
   Eye,
   EyeOff,
   Layers3,
@@ -13,6 +14,8 @@ import {
   Mail,
   ShieldCheck,
   Sparkles,
+  UsersRound,
+  Zap,
 } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useToast } from "../components/ui";
@@ -69,6 +72,43 @@ const highlights = [
   "Better teamwork",
   "Meaningful progress",
 ];
+
+const workspaceStats = [
+  { value: "24/7", label: "workspace access", icon: CalendarClock },
+  { value: "100%", label: "team visibility", icon: UsersRound },
+  { value: "1", label: "shared rhythm", icon: BarChart3 },
+];
+
+const getAuthErrorMessage = (error: unknown, fallback: string) => {
+  const code =
+    typeof error === "object" && error !== null && "code" in error
+      ? String((error as { code?: unknown }).code ?? "")
+      : "";
+
+  const messages: Record<string, string> = {
+    "auth/invalid-credential":
+      "The email or password is incorrect. Please check your details and try again.",
+    "auth/invalid-email": "Please enter a valid email address.",
+    "auth/user-disabled":
+      "This account has been disabled. Please contact your workspace administrator.",
+    "auth/too-many-requests":
+      "Too many attempts. Please wait a moment and try again.",
+    "auth/popup-closed-by-user":
+      "The Google sign-in window was closed before completion.",
+    "auth/popup-blocked":
+      "Your browser blocked the Google sign-in window. Allow pop-ups and try again.",
+    "auth/unauthorized-domain":
+      "This domain is not authorised for Firebase sign-in yet.",
+    "auth/network-request-failed":
+      "A network problem interrupted sign-in. Check your connection and try again.",
+  };
+
+  if (code && messages[code]) {
+    return messages[code];
+  }
+
+  return error instanceof Error && error.message ? error.message : fallback;
+};
 
 export function Login() {
   const { login, loginWithGoogle, loading } = useAuth();
@@ -127,11 +167,7 @@ export function Login() {
       notify("Welcome back to your workspace.", "success");
       redirectAfterLogin();
     } catch (loginError) {
-      const message =
-        loginError instanceof Error
-          ? loginError.message
-          : "Unable to sign in.";
-
+      const message = getAuthErrorMessage(loginError, "Unable to sign in.");
       setError(message);
       notify(message, "error");
     } finally {
@@ -149,11 +185,10 @@ export function Login() {
       notify("Welcome back to your workspace.", "success");
       redirectAfterLogin();
     } catch (googleError) {
-      const message =
-        googleError instanceof Error
-          ? googleError.message
-          : "Google sign-in failed.";
-
+      const message = getAuthErrorMessage(
+        googleError,
+        "Google sign-in failed.",
+      );
       setError(message);
       notify(message, "error");
     } finally {
@@ -162,29 +197,34 @@ export function Login() {
   };
 
   return (
-    <main className="relative min-h-screen overflow-x-hidden bg-[#f5f9ff] text-[#102957] selection:bg-blue-200 selection:text-blue-950">
+    <main className="relative min-h-screen overflow-x-hidden bg-[#f6faff] text-[#102957] selection:bg-blue-200 selection:text-blue-950">
       <div
         aria-hidden="true"
-        className="pointer-events-none fixed -right-40 -top-40 h-[28rem] w-[28rem] animate-pulse rounded-full bg-blue-300/25 blur-3xl"
+        className="pointer-events-none fixed -right-40 -top-40 h-[28rem] w-[28rem] rounded-full bg-blue-300/25 blur-3xl"
       />
-
       <div
         aria-hidden="true"
         className="pointer-events-none fixed -bottom-48 left-1/4 h-[30rem] w-[30rem] animate-[bounce_12s_ease-in-out_infinite] rounded-full bg-cyan-200/30 blur-3xl"
       />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none fixed left-[-12rem] top-1/3 h-[24rem] w-[24rem] rounded-full bg-indigo-200/20 blur-3xl"
+      />
 
       <div className="relative mx-auto grid min-h-screen w-full max-w-[1680px] lg:grid-cols-[minmax(0,1.08fr)_minmax(420px,0.92fr)] lg:gap-5 lg:p-5">
-        <section className="relative isolate flex min-h-[510px] flex-col overflow-hidden rounded-b-[2rem] border border-white/90 bg-gradient-to-br from-white via-[#eff7ff] to-[#d9ecff] px-5 py-6 text-[#173b82] shadow-[0_28px_80px_rgba(56,105,180,0.18)] sm:min-h-[580px] sm:px-9 sm:py-9 lg:min-h-[calc(100vh-2.5rem)] lg:rounded-[2rem] lg:px-14 lg:py-12 xl:px-20">
+        <section className="relative isolate flex min-h-[690px] flex-col overflow-hidden rounded-b-[2rem] border border-white/95 bg-gradient-to-br from-white via-[#f1f8ff] to-[#dff3ff] px-5 py-6 text-[#173b82] shadow-[0_28px_80px_rgba(56,105,180,0.18)] sm:min-h-[760px] sm:px-9 sm:py-9 lg:min-h-[calc(100vh-2.5rem)] lg:rounded-[2rem] lg:px-14 lg:py-12 xl:px-20">
           <div
             aria-hidden="true"
             className="pointer-events-none absolute -bottom-48 -right-36 h-[520px] w-[520px] rounded-full border border-blue-300/25 shadow-[0_0_0_36px_rgba(37,99,235,0.05),0_0_0_74px_rgba(14,165,233,0.04)]"
           />
-
           <div
             aria-hidden="true"
-            className="pointer-events-none absolute -left-28 -top-28 h-72 w-72 animate-pulse rounded-full bg-blue-300/35 blur-2xl"
+            className="pointer-events-none absolute -left-28 -top-28 h-72 w-72 animate-pulse rounded-full bg-blue-300/30 blur-2xl"
           />
-
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute right-10 top-28 h-36 w-36 rounded-full border border-white/80 bg-white/20 blur-[1px]"
+          />
           <div
             aria-hidden="true"
             className="pointer-events-none absolute inset-0 opacity-[0.08] [background-image:linear-gradient(rgba(37,99,235,.12)_1px,transparent_1px),linear-gradient(90deg,rgba(37,99,235,.12)_1px,transparent_1px)] [background-size:52px_52px]"
@@ -195,22 +235,20 @@ export function Login() {
               to="/"
               className="group flex min-w-0 items-center gap-3 text-[#173b82] no-underline"
             >
-              <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl border border-blue-200/80 bg-white/75 text-blue-600 shadow-[0_10px_24px_rgba(37,99,235,0.1)] transition duration-300 group-hover:rotate-6 group-hover:bg-white">
+              <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl border border-blue-200/80 bg-white/80 text-blue-600 shadow-[0_10px_24px_rgba(37,99,235,0.1)] transition duration-300 group-hover:rotate-6 group-hover:bg-white">
                 <Layers3 className="h-5 w-5" />
               </span>
-
               <span className="min-w-0">
                 <strong className="block truncate text-[17px] leading-none tracking-[-0.03em]">
                   creative-crew
                 </strong>
-
                 <small className="mt-1 block text-[9px] font-bold tracking-[0.23em] text-blue-600/60">
                   CREATIVE WORKSPACE
                 </small>
               </span>
             </Link>
 
-            <span className="hidden shrink-0 items-center gap-2 rounded-full border border-blue-200/80 bg-white/75 px-3 py-2 text-[9px] font-bold tracking-[0.17em] text-blue-700 shadow-lg shadow-blue-500/10 backdrop-blur-md sm:inline-flex">
+            <span className="hidden shrink-0 items-center gap-2 rounded-full border border-blue-200/80 bg-white/80 px-3 py-2 text-[9px] font-bold tracking-[0.17em] text-blue-700 shadow-lg shadow-blue-500/10 backdrop-blur-md sm:inline-flex">
               <Sparkles className="h-3.5 w-3.5 animate-pulse" />
               PLAN. CREATE. GROW.
             </span>
@@ -227,15 +265,13 @@ export function Login() {
               <br />
               Creative minds.
               <br />
-                <em className="not-italic text-blue-600">
-                One shared space.
-              </em>
+              <em className="not-italic text-blue-600">One shared space.</em>
             </h1>
 
             <p className="mt-6 max-w-xl text-sm leading-7 text-slate-600 sm:text-base">
-              Welcome to creative-crew — your space to organize
-              projects, collaborate with your team and turn creative
-              ideas into meaningful work.
+              Welcome to creative-crew — your space to organize projects,
+              collaborate with your team and turn creative ideas into
+              meaningful work.
             </p>
 
             <div className="mt-7 flex flex-wrap gap-x-5 gap-y-3">
@@ -253,7 +289,7 @@ export function Login() {
             </div>
 
             <div className="mt-8 grid max-w-xl grid-cols-3 gap-2 sm:gap-3">
-              <div className="min-w-0 rounded-2xl border border-white/90 bg-white/65 p-3 shadow-[0_12px_30px_rgba(37,99,235,0.08)] backdrop-blur-xl transition duration-300 hover:-translate-y-1 hover:bg-white/90">
+              <div className="min-w-0 rounded-2xl border border-white/90 bg-white/70 p-3 shadow-[0_12px_30px_rgba(37,99,235,0.08)] backdrop-blur-xl transition duration-300 hover:-translate-y-1 hover:bg-white/95">
                 <Sparkles className="h-4 w-4 text-blue-600" />
                 <strong className="mt-3 block truncate text-[11px] font-extrabold text-[#173b82] sm:text-xs">
                   Focus
@@ -263,7 +299,7 @@ export function Login() {
                 </span>
               </div>
 
-              <div className="min-w-0 rounded-2xl border border-white/90 bg-white/65 p-3 shadow-[0_12px_30px_rgba(37,99,235,0.08)] backdrop-blur-xl transition duration-300 hover:-translate-y-1 hover:bg-white/90">
+              <div className="min-w-0 rounded-2xl border border-white/90 bg-white/70 p-3 shadow-[0_12px_30px_rgba(37,99,235,0.08)] backdrop-blur-xl transition duration-300 hover:-translate-y-1 hover:bg-white/95">
                 <Link2 className="h-4 w-4 text-cyan-600" />
                 <strong className="mt-3 block truncate text-[11px] font-extrabold text-[#173b82] sm:text-xs">
                   Connect
@@ -273,7 +309,7 @@ export function Login() {
                 </span>
               </div>
 
-              <div className="min-w-0 rounded-2xl border border-white/90 bg-white/65 p-3 shadow-[0_12px_30px_rgba(37,99,235,0.08)] backdrop-blur-xl transition duration-300 hover:-translate-y-1 hover:bg-white/90">
+              <div className="min-w-0 rounded-2xl border border-white/90 bg-white/70 p-3 shadow-[0_12px_30px_rgba(37,99,235,0.08)] backdrop-blur-xl transition duration-300 hover:-translate-y-1 hover:bg-white/95">
                 <ShieldCheck className="h-4 w-4 text-emerald-600" />
                 <strong className="mt-3 block truncate text-[11px] font-extrabold text-[#173b82] sm:text-xs">
                   Deliver
@@ -283,21 +319,50 @@ export function Login() {
                 </span>
               </div>
             </div>
+
+            <div className="mt-4 grid max-w-xl grid-cols-3 gap-2 sm:gap-3">
+              {workspaceStats.map(({ value, label, icon: Icon }) => (
+                <div
+                  key={label}
+                  className="rounded-2xl border border-white/85 bg-white/45 px-3 py-3 backdrop-blur-md"
+                >
+                  <Icon className="h-3.5 w-3.5 text-blue-600" />
+                  <strong className="mt-2 block text-sm font-extrabold text-[#173b82]">
+                    {value}
+                  </strong>
+                  <span className="mt-0.5 block truncate text-[9px] font-semibold uppercase tracking-[0.08em] text-slate-500">
+                    {label}
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
 
-          <div className="group relative z-10 flex w-full max-w-sm items-center gap-3 rounded-2xl border border-white/90 bg-white/70 p-3.5 text-[#173b82] shadow-[0_18px_42px_rgba(37,99,235,0.12)] backdrop-blur-xl transition duration-500 hover:-translate-y-1 hover:bg-white/90">
-            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-blue-100">
-              <CheckCircle2 className="h-5 w-5 text-blue-600" />
-            </span>
-
-            <span className="min-w-0 flex-1">
-              <strong className="block text-xs">Workspace clarity</strong>
-              <span className="mt-1 block truncate text-[11px] text-slate-500">
-                Everything moving in one rhythm.
+          <div className="relative z-10 flex w-full max-w-xl flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="group flex min-w-0 flex-1 items-center gap-3 rounded-2xl border border-white/95 bg-white/75 p-3.5 text-[#173b82] shadow-[0_18px_42px_rgba(37,99,235,0.12)] backdrop-blur-xl transition duration-500 hover:-translate-y-1 hover:bg-white/95">
+              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-blue-100">
+                <CheckCircle2 className="h-5 w-5 text-blue-600" />
               </span>
-            </span>
+              <span className="min-w-0 flex-1">
+                <strong className="block text-xs">Workspace clarity</strong>
+                <span className="mt-1 block truncate text-[11px] text-slate-500">
+                  Everything moving in one rhythm.
+                </span>
+              </span>
+              <ChevronRight className="h-4 w-4 shrink-0 text-blue-500 transition group-hover:translate-x-1" />
+            </div>
 
-            <ChevronRight className="h-4 w-4 text-blue-500 transition group-hover:translate-x-1" />
+            <div className="hidden items-center gap-3 rounded-2xl border border-white/80 bg-white/45 px-4 py-3 text-xs text-slate-600 backdrop-blur-md sm:flex">
+              <span className="grid h-8 w-8 place-items-center rounded-xl bg-cyan-100 text-cyan-600">
+                <Zap className="h-4 w-4" />
+              </span>
+              <span>
+                <strong className="block text-[11px] text-[#173b82]">
+                  Ready when you are
+                </strong>
+                <span className="text-[10px]">Your next idea starts here.</span>
+              </span>
+            </div>
           </div>
 
           <div className="relative z-10 mt-6 flex items-center justify-between gap-5 text-xs text-slate-500">
@@ -318,12 +383,11 @@ export function Login() {
               className="absolute -inset-1 rounded-[2.15rem] bg-gradient-to-br from-blue-300/80 via-white/80 to-cyan-300/80 opacity-75 blur-xl transition duration-700 group-hover:opacity-100"
             />
 
-            <div className="relative rounded-[2rem] border border-white/95 bg-white/90 p-5 shadow-[0_28px_90px_rgba(30,64,175,0.14)] backdrop-blur-2xl transition duration-500 group-hover:shadow-[0_32px_105px_rgba(30,64,175,0.2)] sm:p-9 lg:p-10">
+            <div className="relative rounded-[2rem] border border-white/95 bg-white/95 p-5 shadow-[0_28px_90px_rgba(30,64,175,0.14)] backdrop-blur-2xl transition duration-500 group-hover:shadow-[0_32px_105px_rgba(30,64,175,0.2)] sm:p-9 lg:p-10">
               <div className="mb-8 flex items-center gap-3 lg:hidden">
                 <span className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-blue-600 to-cyan-500 text-white shadow-lg shadow-blue-500/20">
                   <Layers3 className="h-5 w-5" />
                 </span>
-
                 <span>
                   <strong className="block text-base leading-none text-[#173b82]">
                     creative-crew
@@ -361,16 +425,14 @@ export function Login() {
                 onClick={continueWithGoogle}
                 disabled={isBusy}
                 aria-busy={googleSubmitting}
-                className="group/google mt-8 flex min-h-14 w-full items-center gap-3 rounded-2xl border border-slate-200/90 bg-white/85 px-4 text-sm font-bold text-slate-700 shadow-[0_8px_22px_rgba(15,52,110,0.06)] backdrop-blur-xl transition duration-300 hover:-translate-y-0.5 hover:scale-[1.01] hover:border-blue-200 hover:bg-white hover:shadow-[0_15px_32px_rgba(37,99,235,0.13)] focus:outline-none focus:ring-4 focus:ring-blue-100 disabled:cursor-not-allowed disabled:opacity-60"
+                className="group/google mt-8 flex min-h-14 w-full items-center gap-3 rounded-2xl border border-slate-200/90 bg-white/90 px-4 text-sm font-bold text-slate-700 shadow-[0_8px_22px_rgba(15,52,110,0.06)] backdrop-blur-xl transition duration-300 hover:-translate-y-0.5 hover:scale-[1.01] hover:border-blue-200 hover:bg-white hover:shadow-[0_15px_32px_rgba(37,99,235,0.13)] focus:outline-none focus:ring-4 focus:ring-blue-100 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {googleSubmitting ? <Spinner /> : <GoogleIcon />}
-
                 <span className="flex-1 text-left">
                   {googleSubmitting
                     ? "Connecting to Google..."
                     : "Continue with Google"}
                 </span>
-
                 {!googleSubmitting && (
                   <ArrowRight className="h-4 w-4 text-slate-400 transition duration-300 group-hover/google:translate-x-1 group-hover/google:text-blue-600" />
                 )}
@@ -388,10 +450,8 @@ export function Login() {
                     <Mail className="h-3.5 w-3.5 text-blue-500" />
                     Work email
                   </span>
-
                   <span className="group/input relative block">
                     <Mail className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 transition group-focus-within/input:text-blue-600" />
-
                     <input
                       id="work-email"
                       name="email"
@@ -418,10 +478,8 @@ export function Login() {
                     <LockKeyhole className="h-3.5 w-3.5 text-blue-500" />
                     Password
                   </span>
-
                   <span className="group/input relative block">
                     <LockKeyhole className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 transition group-focus-within/input:text-blue-600" />
-
                     <input
                       id="workspace-password"
                       name="password"
@@ -437,7 +495,6 @@ export function Login() {
                       aria-describedby={error ? "login-feedback" : undefined}
                       className="h-14 w-full rounded-2xl border border-slate-200/90 bg-blue-50/80 pl-11 pr-12 text-sm text-slate-800 shadow-[inset_0_1px_0_rgba(255,255,255,0.85)] outline-none transition duration-300 placeholder:text-slate-400 hover:border-blue-200 hover:bg-blue-50 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
                     />
-
                     <button
                       type="button"
                       aria-label={
@@ -462,7 +519,9 @@ export function Login() {
                     aria-live="polite"
                     className="flex items-start gap-3 rounded-2xl border border-red-200/90 bg-red-50/85 px-4 py-3 text-xs leading-5 text-red-700 shadow-sm"
                   >
-                    <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                    <span className="mt-0.5 grid h-4 w-4 shrink-0 place-items-center rounded-full bg-red-100 text-[10px] font-black">
+                      !
+                    </span>
                     <span>{error}</span>
                   </div>
                 ) : success ? (
@@ -482,7 +541,6 @@ export function Login() {
                     <ShieldCheck className="h-4 w-4 text-emerald-500" />
                     Secure Firebase session
                   </span>
-
                   <Link
                     to="/reset-password"
                     className="font-extrabold text-blue-600 transition hover:text-blue-800 hover:underline focus:outline-none focus:ring-4 focus:ring-blue-100"
@@ -498,7 +556,6 @@ export function Login() {
                   className="group/submit relative flex h-14 w-full items-center justify-center gap-3 overflow-hidden rounded-2xl bg-gradient-to-r from-blue-600 via-blue-500 to-cyan-500 px-5 text-sm font-extrabold text-white shadow-[0_15px_32px_rgba(37,99,235,0.28)] transition duration-300 hover:-translate-y-0.5 hover:scale-[1.01] hover:shadow-[0_20px_42px_rgba(37,99,235,0.36)] focus:outline-none focus:ring-4 focus:ring-blue-200 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   <span className="pointer-events-none absolute inset-y-0 -left-1/2 w-1/3 -skew-x-12 bg-white/25 blur-md transition duration-700 group-hover/submit:left-[120%]" />
-
                   {submitting || loading ? (
                     <>
                       <Spinner light />
@@ -517,7 +574,6 @@ export function Login() {
                 <ShieldCheck className="h-4 w-4 shrink-0 text-emerald-500" />
                 <span>Your workspace access is protected and role-aware.</span>
               </div>
-
               <div className="mt-5 flex items-center justify-center gap-2 text-[10px] text-slate-400">
                 <Link2 className="h-3.5 w-3.5 text-blue-400" />
                 Firebase-secured workspace access

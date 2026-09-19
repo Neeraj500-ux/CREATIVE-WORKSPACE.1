@@ -53,7 +53,10 @@ const dateIn = (days: number) => {
   return date.toISOString().slice(0, 10);
 };
 
-const createInitialForm = (type: QuickAddType | null, ownerId = "") => {
+const createInitialForm = (
+  type: QuickAddType | null,
+  ownerId = "",
+): Record<string, string> => {
   switch (type) {
     case "client":
       return { status: "Onboarding", paymentStatus: "Not set", portalAccess: "false" };
@@ -81,6 +84,9 @@ const quickAddStyles = `
     --qa-border: rgba(65, 121, 209, 0.2);
     --qa-blue: #2563eb;
     --qa-cyan: #0891b2;
+    width: 100%;
+    max-width: 100%;
+    overflow: visible;
     color-scheme: light;
     color: var(--qa-ink);
   }
@@ -112,6 +118,7 @@ const quickAddStyles = `
       inset 0 1px 0 rgba(255, 255, 255, 0.96);
     backdrop-filter: blur(24px) saturate(135%);
     -webkit-backdrop-filter: blur(24px) saturate(135%);
+    animation: quickAddEnter 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
   }
 
   .quick-add-picker::before,
@@ -154,6 +161,12 @@ const quickAddStyles = `
     padding: 22px;
   }
 
+  .quick-add-picker-intro,
+  .quick-add-form-banner {
+    position: relative;
+    z-index: 1;
+  }
+
   .quick-add-picker-intro {
     display: flex;
     align-items: center;
@@ -170,6 +183,7 @@ const quickAddStyles = `
     background: linear-gradient(145deg, #e0f2fe, #dbeafe);
     color: var(--qa-blue);
     box-shadow: 0 0 26px rgba(56, 145, 245, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.95);
+    animation: quickAddIconPulse 5.5s ease-in-out infinite;
   }
 
   .quick-add-orb {
@@ -215,6 +229,7 @@ const quickAddStyles = `
     position: relative;
     display: flex;
     min-width: 0;
+    min-height: 84px;
     align-items: center;
     gap: 12px;
     overflow: hidden;
@@ -267,6 +282,13 @@ const quickAddStyles = `
     background: linear-gradient(145deg, #eff6ff, #dbeafe);
     color: var(--qa-blue);
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.96);
+    transition: transform 220ms ease, box-shadow 220ms ease, background 220ms ease;
+  }
+
+  .quick-action-card:hover .quick-action-icon {
+    background: linear-gradient(145deg, #dbeafe, #cffafe);
+    box-shadow: 0 8px 20px rgba(37, 99, 235, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.98);
+    transform: rotate(-4deg) scale(1.06);
   }
 
   .quick-action-copy {
@@ -372,10 +394,27 @@ const quickAddStyles = `
     color: #1d4ed8;
   }
 
+  .quick-add-change:disabled,
+  .quick-action-card:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+    transform: none;
+  }
+
   .quick-add-form-grid {
     position: relative;
     z-index: 1;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 15px;
+  }
+
+  .quick-add-form-grid > * {
+    min-width: 0;
+  }
+
+  .quick-add-form-grid .field-span-2 {
+    grid-column: span 2;
   }
 
   .quick-add-form-grid input,
@@ -421,6 +460,37 @@ const quickAddStyles = `
     font-weight: 650;
   }
 
+  .quick-add-form-error {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: flex-start;
+    gap: 9px;
+    margin: 0 0 15px;
+    padding: 11px 13px;
+    border: 1px solid rgba(220, 38, 38, 0.18);
+    border-radius: 14px;
+    background: rgba(254, 242, 242, 0.9);
+    color: #b91c1c;
+    font-size: 0.76rem;
+    line-height: 1.45;
+    box-shadow: 0 8px 20px rgba(185, 28, 28, 0.06);
+    animation: quickAddEnter 260ms ease both;
+  }
+
+  .quick-add-form-error-mark {
+    display: grid;
+    flex: 0 0 auto;
+    width: 17px;
+    height: 17px;
+    place-items: center;
+    border-radius: 50%;
+    background: #fee2e2;
+    color: #b91c1c;
+    font-size: 0.68rem;
+    font-weight: 900;
+  }
+
   .quick-add-footer {
     display: flex;
     align-items: center;
@@ -447,6 +517,16 @@ const quickAddStyles = `
   @keyframes quickAddFloat {
     from { transform: translate3d(-16px, 10px, 0) scale(0.92); }
     to { transform: translate3d(20px, -18px, 0) scale(1.08); }
+  }
+
+  @keyframes quickAddEnter {
+    from { opacity: 0; transform: translateY(8px) scale(0.985); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  @keyframes quickAddIconPulse {
+    0%, 100% { box-shadow: 0 0 22px rgba(56, 145, 245, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.95); }
+    50% { box-shadow: 0 0 34px rgba(56, 145, 245, 0.26), inset 0 1px 0 rgba(255, 255, 255, 0.98); }
   }
 
   @keyframes quickAddSheen {
@@ -494,6 +574,40 @@ const quickAddStyles = `
     .quick-add-footer-actions > * {
       flex: 1;
     }
+
+    .quick-add-picker-intro {
+      align-items: flex-start;
+    }
+
+    .quick-add-picker-copy {
+      max-width: 28rem;
+    }
+  }
+
+  @media (max-width: 420px) {
+    .quick-add-picker,
+    .quick-add-form-shell {
+      padding: 13px;
+    }
+
+    .quick-add-picker-intro {
+      gap: 10px;
+    }
+
+    .quick-add-orb {
+      width: 45px;
+      height: 45px;
+      border-radius: 14px;
+    }
+
+    .quick-action-card {
+      padding: 12px;
+    }
+
+    .quick-action-arrow {
+      width: 28px;
+      height: 28px;
+    }
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -523,14 +637,7 @@ export function QuickAddModal({
   const [type, setType] = useState<QuickAddType | null>(initialType ?? null);
   const [submitting, setSubmitting] = useState(false);
   const [form, setForm] = useState<Record<string, string>>({});
-
-  useEffect(() => {
-    if (open) {
-      const nextType = initialType ?? null;
-      setType(nextType);
-      setForm(createInitialForm(nextType, user?.id));
-    }
-  }, [initialType, open, user?.id]);
+  const [formError, setFormError] = useState("");
 
   const available = useMemo<QuickAddType[]>(() => {
     if (!user) return [];
@@ -546,22 +653,36 @@ export function QuickAddModal({
     ];
   }, [user]);
 
+  useEffect(() => {
+    if (open) {
+      const requestedType = initialType ?? null;
+      const nextType = requestedType && available.includes(requestedType) ? requestedType : null;
+      setType(nextType);
+      setForm(createInitialForm(nextType, user?.id ?? ""));
+      setFormError("");
+    }
+  }, [available, initialType, open, user?.id]);
+
   if (!user) return null;
 
   const set = (key: string, value: string) => {
+    setFormError("");
     setForm((current) => ({ ...current, [key]: value }));
   };
 
   const chooseType = (nextType: QuickAddType) => {
     setType(nextType);
     setForm(createInitialForm(nextType, user.id));
+    setFormError("");
   };
 
   const required = (keys: string[]) => keys.every((key) => Boolean(form[key]?.trim()));
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!type) return;
+    if (!type || submitting) return;
+
+    setFormError("");
 
     let valid = true;
     if (type === "client") valid = required(["name", "company", "email"]);
@@ -573,7 +694,16 @@ export function QuickAddModal({
     if (type === "goal") valid = required(["title", "scope", "dueDate"]);
 
     if (!valid) {
-      notify("Please complete the required fields.", "error");
+      const message = "Please complete all required fields before saving.";
+      setFormError(message);
+      notify(message, "error");
+      return;
+    }
+
+    if (["client", "user"].includes(type) && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
+      const message = "Please enter a valid email address.";
+      setFormError(message);
+      notify(message, "error");
       return;
     }
 
@@ -860,8 +990,8 @@ export function QuickAddModal({
             <div className="quick-add-footer">
               <span className="quick-add-footer-hint"><b>*</b> Required fields are marked for you.</span>
               <div className="quick-add-footer-actions">
-                <Button variant="ghost" onClick={onClose}>Cancel</Button>
-                <Button type="submit" form="quick-add-form" loading={submitting}>Save {labels[type].replace(/^(Add|Create|Request) /, "")}</Button>
+                <Button variant="ghost" onClick={onClose} disabled={submitting}>Cancel</Button>
+                <Button type="submit" form="quick-add-form" loading={submitting} disabled={submitting}>Save {labels[type].replace(/^(Add|Create|Request) /, "")}</Button>
               </div>
             </div>
           ) : null
@@ -876,11 +1006,26 @@ export function QuickAddModal({
                   <span className="quick-add-form-kicker">Creating in workspace</span>
                   <strong className="quick-add-form-title">{labels[type]}</strong>
                 </div>
-                <button className="quick-add-change" type="button" onClick={() => { setType(null); setForm({}); }}>
+                <button
+                  className="quick-add-change"
+                  type="button"
+                  disabled={submitting}
+                  onClick={() => {
+                    setType(null);
+                    setForm({});
+                    setFormError("");
+                  }}
+                >
                   <ArrowLeft size={14} /> Change action
                 </button>
               </div>
-              <form id="quick-add-form" onSubmit={submit}>
+              {formError ? (
+                <div className="quick-add-form-error" role="alert" aria-live="polite">
+                  <span className="quick-add-form-error-mark" aria-hidden="true">!</span>
+                  <span>{formError}</span>
+                </div>
+              ) : null}
+              <form id="quick-add-form" onSubmit={submit} aria-busy={submitting}>
                 {renderForm()}
               </form>
             </div>
