@@ -53,12 +53,11 @@ function Spinner({ light = false }: { light?: boolean }) {
     <span
       aria-label="Loading"
       role="status"
-      className={[
-        "h-4 w-4 animate-spin rounded-full border-2",
+      className={`h-4 w-4 animate-spin rounded-full border-2 ${
         light
           ? "border-white/35 border-t-white"
-          : "border-blue-200 border-t-blue-600",
-      ].join(" ")}
+          : "border-blue-200 border-t-blue-600"
+      }`}
     />
   );
 }
@@ -71,6 +70,30 @@ const highlights = [
   "Clear priorities",
   "Better teamwork",
   "Meaningful progress",
+];
+
+const quickCards = [
+  {
+    title: "Focus",
+    body: "Less noise",
+    icon: Sparkles,
+    iconClass: "text-blue-600",
+    iconBackground: "bg-blue-100/90",
+  },
+  {
+    title: "Connect",
+    body: "One rhythm",
+    icon: Link2,
+    iconClass: "text-cyan-600",
+    iconBackground: "bg-cyan-100/90",
+  },
+  {
+    title: "Deliver",
+    body: "Move forward",
+    icon: ShieldCheck,
+    iconClass: "text-emerald-600",
+    iconBackground: "bg-emerald-100/90",
+  },
 ];
 
 const workspaceStats = [
@@ -197,33 +220,33 @@ export function Login() {
   };
 
   return (
-    <main className="relative min-h-screen overflow-x-hidden bg-[#f6faff] text-[#102957] selection:bg-blue-200 selection:text-blue-950">
+    <main className="relative min-h-screen overflow-x-hidden bg-[#edf6ff] text-[#102957] selection:bg-blue-200 selection:text-blue-950">
       <div
         aria-hidden="true"
-        className="pointer-events-none fixed -right-40 -top-40 h-[28rem] w-[28rem] rounded-full bg-blue-300/25 blur-3xl"
+        className="pointer-events-none fixed -right-40 -top-40 h-[30rem] w-[30rem] rounded-full bg-blue-300/25 blur-3xl"
       />
       <div
         aria-hidden="true"
-        className="pointer-events-none fixed -bottom-48 left-1/4 h-[30rem] w-[30rem] animate-[bounce_12s_ease-in-out_infinite] rounded-full bg-cyan-200/30 blur-3xl"
+        className="pointer-events-none fixed -bottom-52 left-1/4 h-[32rem] w-[32rem] rounded-full bg-cyan-200/30 blur-3xl"
       />
       <div
         aria-hidden="true"
-        className="pointer-events-none fixed left-[-12rem] top-1/3 h-[24rem] w-[24rem] rounded-full bg-indigo-200/20 blur-3xl"
+        className="pointer-events-none fixed left-[-12rem] top-1/3 h-[25rem] w-[25rem] rounded-full bg-indigo-200/20 blur-3xl"
       />
 
-      <div className="relative mx-auto grid min-h-screen w-full max-w-[1680px] lg:grid-cols-[minmax(0,1.08fr)_minmax(420px,0.92fr)] lg:gap-5 lg:p-5">
-        <section className="relative isolate flex min-h-[690px] flex-col overflow-hidden rounded-b-[2rem] border border-white/95 bg-gradient-to-br from-white via-[#f1f8ff] to-[#dff3ff] px-5 py-6 text-[#173b82] shadow-[0_28px_80px_rgba(56,105,180,0.18)] sm:min-h-[760px] sm:px-9 sm:py-9 lg:min-h-[calc(100vh-2.5rem)] lg:rounded-[2rem] lg:px-14 lg:py-12 xl:px-20">
+      <div className="relative mx-auto grid min-h-screen w-full max-w-[1720px] gap-3 p-2 sm:gap-5 sm:p-5 lg:grid-cols-[minmax(0,1.04fr)_minmax(30rem,0.96fr)]">
+        <section className="relative isolate flex min-h-[720px] flex-col overflow-hidden rounded-[1.8rem] border border-white/95 bg-[linear-gradient(135deg,#ffffff_0%,#f2f8ff_47%,#dff3ff_100%)] px-5 py-6 text-[#173b82] shadow-[0_28px_80px_rgba(56,105,180,0.18)] sm:min-h-[760px] sm:rounded-[2rem] sm:px-9 sm:py-9 lg:min-h-[calc(100vh-2.5rem)] lg:px-12 lg:py-11 xl:px-16">
           <div
             aria-hidden="true"
-            className="pointer-events-none absolute -bottom-48 -right-36 h-[520px] w-[520px] rounded-full border border-blue-300/25 shadow-[0_0_0_36px_rgba(37,99,235,0.05),0_0_0_74px_rgba(14,165,233,0.04)]"
+            className="pointer-events-none absolute -bottom-52 -right-36 h-[34rem] w-[34rem] rounded-full border border-blue-300/25 shadow-[0_0_0_38px_rgba(37,99,235,0.05),0_0_0_78px_rgba(14,165,233,0.04)]"
           />
           <div
             aria-hidden="true"
-            className="pointer-events-none absolute -left-28 -top-28 h-72 w-72 animate-pulse rounded-full bg-blue-300/30 blur-2xl"
+            className="pointer-events-none absolute -left-28 -top-28 h-72 w-72 rounded-full bg-blue-300/30 blur-2xl"
           />
           <div
             aria-hidden="true"
-            className="pointer-events-none absolute right-10 top-28 h-36 w-36 rounded-full border border-white/80 bg-white/20 blur-[1px]"
+            className="pointer-events-none absolute right-8 top-24 h-36 w-36 rounded-full border border-white/80 bg-white/25 blur-[1px] sm:right-12 sm:top-28"
           />
           <div
             aria-hidden="true"
@@ -235,7 +258,7 @@ export function Login() {
               to="/"
               className="group flex min-w-0 items-center gap-3 text-[#173b82] no-underline"
             >
-              <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl border border-blue-200/80 bg-white/80 text-blue-600 shadow-[0_10px_24px_rgba(37,99,235,0.1)] transition duration-300 group-hover:rotate-6 group-hover:bg-white">
+              <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl border border-blue-200/80 bg-white/85 text-blue-600 shadow-[0_10px_24px_rgba(37,99,235,0.1)] transition duration-300 group-hover:rotate-6 group-hover:bg-white">
                 <Layers3 className="h-5 w-5" />
               </span>
               <span className="min-w-0">
@@ -248,19 +271,19 @@ export function Login() {
               </span>
             </Link>
 
-            <span className="hidden shrink-0 items-center gap-2 rounded-full border border-blue-200/80 bg-white/80 px-3 py-2 text-[9px] font-bold tracking-[0.17em] text-blue-700 shadow-lg shadow-blue-500/10 backdrop-blur-md sm:inline-flex">
-              <Sparkles className="h-3.5 w-3.5 animate-pulse" />
+            <span className="hidden shrink-0 items-center gap-2 rounded-full border border-blue-200/80 bg-white/85 px-3 py-2 text-[9px] font-bold tracking-[0.17em] text-blue-700 shadow-lg shadow-blue-500/10 backdrop-blur-md sm:inline-flex">
+              <Sparkles className="h-3.5 w-3.5 text-blue-500" />
               PLAN. CREATE. GROW.
             </span>
           </div>
 
-          <div className="relative z-10 my-auto max-w-3xl py-14 sm:py-20 lg:py-24">
+          <div className="relative z-10 my-auto max-w-3xl py-16 sm:py-20 lg:py-14 xl:py-20">
             <span className="inline-flex items-center gap-2 text-[10px] font-extrabold uppercase tracking-[0.18em] text-blue-600/80">
               <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-blue-500" />
               One shared space for your best work
             </span>
 
-            <h1 className="mt-5 max-w-3xl text-[clamp(2.35rem,10vw,5.8rem)] font-semibold leading-[0.96] tracking-[-0.07em] sm:text-[clamp(3.2rem,6.5vw,5.8rem)]">
+            <h1 className="mt-5 max-w-3xl text-[clamp(2.35rem,9vw,5.6rem)] font-semibold leading-[0.96] tracking-[-0.07em] sm:text-[clamp(3.2rem,6.5vw,5.8rem)]">
               Big ideas.
               <br />
               Creative minds.
@@ -288,43 +311,34 @@ export function Login() {
               ))}
             </div>
 
-            <div className="mt-8 grid max-w-xl grid-cols-3 gap-2 sm:gap-3">
-              <div className="min-w-0 rounded-2xl border border-white/90 bg-white/70 p-3 shadow-[0_12px_30px_rgba(37,99,235,0.08)] backdrop-blur-xl transition duration-300 hover:-translate-y-1 hover:bg-white/95">
-                <Sparkles className="h-4 w-4 text-blue-600" />
-                <strong className="mt-3 block truncate text-[11px] font-extrabold text-[#173b82] sm:text-xs">
-                  Focus
-                </strong>
-                <span className="mt-1 block truncate text-[10px] text-slate-500 sm:text-[11px]">
-                  Less noise
-                </span>
-              </div>
-
-              <div className="min-w-0 rounded-2xl border border-white/90 bg-white/70 p-3 shadow-[0_12px_30px_rgba(37,99,235,0.08)] backdrop-blur-xl transition duration-300 hover:-translate-y-1 hover:bg-white/95">
-                <Link2 className="h-4 w-4 text-cyan-600" />
-                <strong className="mt-3 block truncate text-[11px] font-extrabold text-[#173b82] sm:text-xs">
-                  Connect
-                </strong>
-                <span className="mt-1 block truncate text-[10px] text-slate-500 sm:text-[11px]">
-                  One rhythm
-                </span>
-              </div>
-
-              <div className="min-w-0 rounded-2xl border border-white/90 bg-white/70 p-3 shadow-[0_12px_30px_rgba(37,99,235,0.08)] backdrop-blur-xl transition duration-300 hover:-translate-y-1 hover:bg-white/95">
-                <ShieldCheck className="h-4 w-4 text-emerald-600" />
-                <strong className="mt-3 block truncate text-[11px] font-extrabold text-[#173b82] sm:text-xs">
-                  Deliver
-                </strong>
-                <span className="mt-1 block truncate text-[10px] text-slate-500 sm:text-[11px]">
-                  Move forward
-                </span>
-              </div>
+            <div className="mt-8 grid max-w-xl grid-cols-1 gap-3 min-[420px]:grid-cols-3">
+              {quickCards.map(
+                ({ title, body, icon: Icon, iconClass, iconBackground }) => (
+                  <div
+                    key={title}
+                    className="min-w-0 rounded-2xl border border-white/90 bg-white/75 p-3.5 shadow-[0_12px_30px_rgba(37,99,235,0.08)] backdrop-blur-xl transition duration-300 hover:-translate-y-1 hover:bg-white/95"
+                  >
+                    <span
+                      className={`grid h-7 w-7 place-items-center rounded-xl ${iconBackground}`}
+                    >
+                      <Icon className={`h-4 w-4 ${iconClass}`} />
+                    </span>
+                    <strong className="mt-3 block truncate text-[11px] font-extrabold text-[#173b82] sm:text-xs">
+                      {title}
+                    </strong>
+                    <span className="mt-1 block truncate text-[10px] text-slate-500 sm:text-[11px]">
+                      {body}
+                    </span>
+                  </div>
+                ),
+              )}
             </div>
 
-            <div className="mt-4 grid max-w-xl grid-cols-3 gap-2 sm:gap-3">
+            <div className="mt-4 grid max-w-xl grid-cols-1 gap-3 min-[420px]:grid-cols-3">
               {workspaceStats.map(({ value, label, icon: Icon }) => (
                 <div
                   key={label}
-                  className="rounded-2xl border border-white/85 bg-white/45 px-3 py-3 backdrop-blur-md"
+                  className="rounded-2xl border border-white/85 bg-white/50 px-3.5 py-3 backdrop-blur-md"
                 >
                   <Icon className="h-3.5 w-3.5 text-blue-600" />
                   <strong className="mt-2 block text-sm font-extrabold text-[#173b82]">
@@ -338,8 +352,8 @@ export function Login() {
             </div>
           </div>
 
-          <div className="relative z-10 flex w-full max-w-xl flex-col gap-3 sm:flex-row sm:items-center">
-            <div className="group flex min-w-0 flex-1 items-center gap-3 rounded-2xl border border-white/95 bg-white/75 p-3.5 text-[#173b82] shadow-[0_18px_42px_rgba(37,99,235,0.12)] backdrop-blur-xl transition duration-500 hover:-translate-y-1 hover:bg-white/95">
+          <div className="relative z-10 flex w-full max-w-2xl flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="group flex min-w-0 flex-1 items-center gap-3 rounded-2xl border border-white/95 bg-white/80 p-3.5 text-[#173b82] shadow-[0_18px_42px_rgba(37,99,235,0.12)] backdrop-blur-xl transition duration-500 hover:-translate-y-1 hover:bg-white/95">
               <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-blue-100">
                 <CheckCircle2 className="h-5 w-5 text-blue-600" />
               </span>
@@ -352,8 +366,8 @@ export function Login() {
               <ChevronRight className="h-4 w-4 shrink-0 text-blue-500 transition group-hover:translate-x-1" />
             </div>
 
-            <div className="hidden items-center gap-3 rounded-2xl border border-white/80 bg-white/45 px-4 py-3 text-xs text-slate-600 backdrop-blur-md sm:flex">
-              <span className="grid h-8 w-8 place-items-center rounded-xl bg-cyan-100 text-cyan-600">
+            <div className="hidden items-center gap-3 rounded-2xl border border-white/80 bg-white/50 px-4 py-3 text-xs text-slate-600 backdrop-blur-md sm:flex">
+              <span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-cyan-100 text-cyan-600">
                 <Zap className="h-4 w-4" />
               </span>
               <span>
@@ -371,19 +385,23 @@ export function Login() {
           </div>
         </section>
 
-        <section className="relative flex min-h-[700px] items-center justify-center overflow-hidden bg-white/45 px-3 py-8 sm:px-8 sm:py-12 lg:min-h-0 lg:bg-transparent lg:px-10 lg:py-10 xl:px-20">
+        <section className="relative flex min-h-[760px] items-center justify-center overflow-hidden rounded-[1.8rem] bg-white/35 px-1 py-5 sm:rounded-[2rem] sm:px-5 sm:py-10 lg:min-h-[calc(100vh-2.5rem)] lg:bg-transparent lg:px-8 lg:py-12 xl:px-14">
           <div
             aria-hidden="true"
-            className="pointer-events-none absolute right-[-5rem] top-[-5rem] h-64 w-64 animate-pulse rounded-full bg-sky-200/55 blur-3xl"
+            className="pointer-events-none absolute right-[-4rem] top-[-4rem] h-72 w-72 rounded-full bg-sky-200/55 blur-3xl"
+          />
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute bottom-[-5rem] left-[-5rem] h-64 w-64 rounded-full bg-blue-200/35 blur-3xl"
           />
 
-          <div className="group relative w-full max-w-[31rem]">
+          <div className="group relative w-full max-w-[37rem]">
             <div
               aria-hidden="true"
-              className="absolute -inset-1 rounded-[2.15rem] bg-gradient-to-br from-blue-300/80 via-white/80 to-cyan-300/80 opacity-75 blur-xl transition duration-700 group-hover:opacity-100"
+              className="absolute -inset-1 rounded-[2.25rem] bg-gradient-to-br from-blue-300/85 via-white/90 to-cyan-300/85 opacity-80 blur-xl transition duration-700 group-hover:opacity-100"
             />
 
-            <div className="relative rounded-[2rem] border border-white/95 bg-white/95 p-5 shadow-[0_28px_90px_rgba(30,64,175,0.14)] backdrop-blur-2xl transition duration-500 group-hover:shadow-[0_32px_105px_rgba(30,64,175,0.2)] sm:p-9 lg:p-10">
+            <div className="relative rounded-[2rem] border border-white/95 bg-white/95 p-6 shadow-[0_28px_90px_rgba(30,64,175,0.16)] backdrop-blur-2xl transition duration-500 group-hover:shadow-[0_32px_105px_rgba(30,64,175,0.23)] sm:p-10 lg:p-11 xl:p-12">
               <div className="mb-8 flex items-center gap-3 lg:hidden">
                 <span className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-blue-600 to-cyan-500 text-white shadow-lg shadow-blue-500/20">
                   <Layers3 className="h-5 w-5" />
@@ -399,12 +417,12 @@ export function Login() {
               </div>
 
               <header>
-                <span className="inline-flex items-center gap-2 rounded-full border border-blue-100 bg-blue-50/80 px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-[0.16em] text-blue-600">
+                <span className="inline-flex items-center gap-2 rounded-full border border-blue-100 bg-blue-50/85 px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-[0.16em] text-blue-600">
                   <LockKeyhole className="h-3.5 w-3.5" />
                   Secure workspace
                 </span>
 
-                <h2 className="mt-5 bg-gradient-to-br from-[#0b2554] via-[#173b82] to-blue-600 bg-clip-text text-[clamp(2.25rem,8vw,3.5rem)] font-semibold leading-[0.98] tracking-[-0.065em] text-transparent">
+                <h2 className="mt-5 bg-gradient-to-br from-[#0b2554] via-[#173b82] to-blue-600 bg-clip-text text-[clamp(2.25rem,7vw,3.65rem)] font-semibold leading-[0.98] tracking-[-0.065em] text-transparent">
                   Welcome back.
                 </h2>
 
@@ -425,29 +443,30 @@ export function Login() {
                 onClick={continueWithGoogle}
                 disabled={isBusy}
                 aria-busy={googleSubmitting}
-                className="group/google mt-8 flex min-h-14 w-full items-center gap-3 rounded-2xl border border-slate-200/90 bg-white/90 px-4 text-sm font-bold text-slate-700 shadow-[0_8px_22px_rgba(15,52,110,0.06)] backdrop-blur-xl transition duration-300 hover:-translate-y-0.5 hover:scale-[1.01] hover:border-blue-200 hover:bg-white hover:shadow-[0_15px_32px_rgba(37,99,235,0.13)] focus:outline-none focus:ring-4 focus:ring-blue-100 disabled:cursor-not-allowed disabled:opacity-60"
+                className="group/google relative mt-8 flex min-h-14 w-full items-center justify-center rounded-2xl border border-slate-200/90 bg-white/90 px-12 text-sm font-bold text-slate-700 shadow-[0_8px_22px_rgba(15,52,110,0.06)] backdrop-blur-xl transition duration-300 hover:-translate-y-0.5 hover:border-blue-200 hover:bg-white hover:shadow-[0_15px_32px_rgba(37,99,235,0.13)] focus:outline-none focus:ring-4 focus:ring-blue-100 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {googleSubmitting ? <Spinner /> : <GoogleIcon />}
-                <span className="flex-1 text-left">
-                  {googleSubmitting
-                    ? "Connecting to Google..."
-                    : "Continue with Google"}
+                <span className="flex items-center justify-center gap-3 text-center">
+                  {googleSubmitting ? <Spinner /> : <GoogleIcon />}
+                  <span>
+                    {googleSubmitting
+                      ? "Connecting to Google..."
+                      : "Continue with Google"}
+                  </span>
                 </span>
                 {!googleSubmitting && (
-                  <ArrowRight className="h-4 w-4 text-slate-400 transition duration-300 group-hover/google:translate-x-1 group-hover/google:text-blue-600" />
+                  <ArrowRight className="absolute right-4 h-4 w-4 text-slate-400 transition duration-300 group-hover/google:translate-x-1 group-hover/google:text-blue-600" />
                 )}
               </button>
 
               <div className="my-7 flex items-center gap-3 text-[11px] text-slate-400">
                 <span className="h-px flex-1 bg-gradient-to-r from-transparent via-slate-200 to-slate-200" />
                 <span className="shrink-0">or continue with email</span>
-                <span className="h-px flex-1 bg-gradient-to-l from-transparent via-slate-200 to-slate-200" />
+                <span className="h-px flex-1 bg-gradient-to-l from-transparent via-slate-200 to-transparent" />
               </div>
 
               <form onSubmit={submit} noValidate className="space-y-5">
                 <label className="block" htmlFor="work-email">
-                  <span className="mb-2 flex items-center gap-2 text-xs font-extrabold text-slate-700">
-                    <Mail className="h-3.5 w-3.5 text-blue-500" />
+                  <span className="mb-2 block text-xs font-extrabold text-slate-700">
                     Work email
                   </span>
                   <span className="group/input relative block">
@@ -474,8 +493,7 @@ export function Login() {
                 </label>
 
                 <label className="block" htmlFor="workspace-password">
-                  <span className="mb-2 flex items-center gap-2 text-xs font-extrabold text-slate-700">
-                    <LockKeyhole className="h-3.5 w-3.5 text-blue-500" />
+                  <span className="mb-2 block text-xs font-extrabold text-slate-700">
                     Password
                   </span>
                   <span className="group/input relative block">
@@ -536,7 +554,7 @@ export function Login() {
                   </div>
                 ) : null}
 
-                <div className="flex flex-wrap items-center justify-between gap-3 text-xs">
+                <div className="flex flex-col gap-3 text-xs sm:flex-row sm:items-center sm:justify-between">
                   <span className="inline-flex items-center gap-1.5 text-slate-400">
                     <ShieldCheck className="h-4 w-4 text-emerald-500" />
                     Secure Firebase session
@@ -553,7 +571,7 @@ export function Login() {
                   type="submit"
                   disabled={isBusy}
                   aria-busy={submitting || loading}
-                  className="group/submit relative flex h-14 w-full items-center justify-center gap-3 overflow-hidden rounded-2xl bg-gradient-to-r from-blue-600 via-blue-500 to-cyan-500 px-5 text-sm font-extrabold text-white shadow-[0_15px_32px_rgba(37,99,235,0.28)] transition duration-300 hover:-translate-y-0.5 hover:scale-[1.01] hover:shadow-[0_20px_42px_rgba(37,99,235,0.36)] focus:outline-none focus:ring-4 focus:ring-blue-200 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="group/submit relative flex h-14 w-full items-center justify-center gap-3 overflow-hidden rounded-2xl bg-gradient-to-r from-blue-600 via-blue-500 to-cyan-500 px-5 text-sm font-extrabold text-white shadow-[0_15px_32px_rgba(37,99,235,0.28)] transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_20px_42px_rgba(37,99,235,0.36)] focus:outline-none focus:ring-4 focus:ring-blue-200 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   <span className="pointer-events-none absolute inset-y-0 -left-1/2 w-1/3 -skew-x-12 bg-white/25 blur-md transition duration-700 group-hover/submit:left-[120%]" />
                   {submitting || loading ? (
