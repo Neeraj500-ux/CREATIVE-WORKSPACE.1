@@ -16,7 +16,7 @@ import {
 } from "firebase/auth";
 import type { User as FirebaseUser } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
-import { cloneSeed, demoCredentials } from "../data/seed";
+import { cloneSeed } from "../data/seed";
 import type { UserProfile } from "../types";
 import {
   auth,
@@ -46,12 +46,18 @@ const resolveDemoProfile = (email?: string): UserProfile | null => {
   const seed = cloneSeed();
 
   if (!target) {
-    return seed.users.find((user) => user.email.toLowerCase() === LOCAL_DEMO_EMAIL) ?? null;
+    return (
+      seed.users.find(
+        (user) => user.email.toLowerCase() === LOCAL_DEMO_EMAIL,
+      ) ?? null
+    );
   }
 
   return (
     seed.users.find((user) => user.email.toLowerCase() === target) ??
-    seed.users.find((user) => user.email.toLowerCase() === LOCAL_DEMO_EMAIL) ??
+    seed.users.find(
+      (user) => user.email.toLowerCase() === LOCAL_DEMO_EMAIL,
+    ) ??
     null
   );
 };
@@ -107,19 +113,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const firebaseAuth = auth;
-    const isLocalHost =
-      typeof window !== "undefined" &&
-      (window.location.hostname === "127.0.0.1" ||
-        window.location.hostname === "localhost");
 
     if (!firebaseEnabled || !firebaseAuth) {
-      setUser(null);
-      setAuthError(null);
-      setLoading(false);
-      return;
-    }
-
-    if (isLocalHost && !window.location.origin.includes("firebaseapp.com")) {
       setUser(null);
       setAuthError(null);
       setLoading(false);
@@ -218,6 +213,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
 
         const demoProfile = resolveDemoProfile(cleanEmail);
+
         if (!firebaseEnabled || !firebaseAuth) {
           if (demoProfile && password === "demo123") {
             setUser(demoProfile);
@@ -233,10 +229,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           typeof window !== "undefined" &&
           (window.location.hostname === "127.0.0.1" ||
             window.location.hostname === "localhost") &&
-          demoProfile &&
+          demoProfile !== null &&
           password === "demo123";
 
-        if (isLocalDemoLogin) {
+        if (isLocalDemoLogin && demoProfile) {
           setUser(demoProfile);
           return;
         }
@@ -264,23 +260,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       loginWithGoogle: async () => {
         const firebaseAuth = auth;
-
         setAuthError(null);
 
-        const isLocalDemo =
-          typeof window !== "undefined" &&
-          (window.location.hostname === "127.0.0.1" ||
-            window.location.hostname === "localhost");
-
         if (!firebaseEnabled || !firebaseAuth) {
-          const demoProfile = resolveDemoProfile(LOCAL_DEMO_EMAIL);
-          if (demoProfile) {
-            setUser(demoProfile);
-            return;
-          }
-
-          const message =
-            "Firebase is not configured. Check your .env file.";
+          const message = "Firebase is not configured. Check your .env file.";
           setAuthError(message);
           throw new Error(message);
         }
@@ -290,6 +273,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           provider.setCustomParameters({ prompt: "select_account" });
 
           const result = await signInWithPopup(firebaseAuth, provider);
+
           try {
             const profile = await getActiveProfile(result.user);
             setUser(profile);
@@ -298,14 +282,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             throw profileError;
           }
         } catch (error) {
-          if (isLocalDemo) {
-            const demoProfile = resolveDemoProfile(LOCAL_DEMO_EMAIL);
-            if (demoProfile) {
-              setUser(demoProfile);
-              return;
-            }
-          }
-
           const message = readableFirebaseError(error);
           setAuthError(message);
           throw new Error(message);
@@ -321,9 +297,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
 
         if (!firebaseEnabled || !firebaseAuth) {
-          throw new Error(
-            "Firebase is not configured. Check your .env file.",
-          );
+          throw new Error("Firebase is not configured. Check your .env file.");
         }
 
         try {
