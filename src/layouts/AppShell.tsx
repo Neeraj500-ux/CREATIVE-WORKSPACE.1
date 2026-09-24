@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { Activity, ArrowUpRight, Bell, ChevronDown, Command, HelpCircle, LogOut, Menu, Moon, PanelLeftClose, PanelLeftOpen, Plus, Search, Sparkles, Sun, X } from "lucide-react";
+import { Activity, ArrowUpRight, Bell, ChevronDown, Command, HelpCircle, LogOut, Menu, PanelLeftClose, PanelLeftOpen, Plus, Search, Sparkles, X } from "lucide-react";
 import { getDashboardPath, getVisibleNavigation, hasPermission } from "../lib/permissions";
 import { formatRelativeTime, roleLabels } from "../lib/formatters";
 import { useAuth } from "../services/auth";
@@ -28,25 +28,22 @@ export default function AppShell() {
   const [quickAddType, setQuickAddType] = useState<QuickAddType | undefined>(undefined);
   const [query, setQuery] = useState("");
   const [profileOpen, setProfileOpen] = useState(false);
-  const [dark, setDark] = useState(() => window.localStorage.getItem("creative-crew:theme") === "dark");
   const commandInput = useRef<HTMLInputElement>(null);
   const basePath = user ? getDashboardPath(user.role) : "/login";
   const navItems = useMemo(() => getVisibleNavigation(user), [user]);
   const unreadCount = data.notifications.filter((item) => !item.read && item.userId === user?.id).length;
-
-  useEffect(() => {
-    document.documentElement.dataset.theme = dark ? "dark" : "light";
-    window.localStorage.setItem("creative-crew:theme", dark ? "dark" : "light");
-  }, [dark]);
+  const canOpenSettings = navItems.some((item) => item.path === "settings");
 
   useEffect(() => {
     const handleKey = (event: KeyboardEvent) => {
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") { event.preventDefault(); setCommandOpen(true); }
-      if (event.key === "Escape") { setCommandOpen(false); setProfileOpen(false); }
+      if (event.key === "Escape") { setCommandOpen(false); setProfileOpen(false); setMobileOpen(false); }
     };
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
   }, []);
+
+  useEffect(() => { setMobileOpen(false); setProfileOpen(false); }, [location.pathname]);
 
   useEffect(() => {
     if (commandOpen) window.setTimeout(() => commandInput.current?.focus(), 40);
@@ -68,17 +65,17 @@ export default function AppShell() {
   const groupedItems = navItems.reduce<Record<string, typeof navItems>>((result, item) => { const key = grouped(item.path); result[key] = [...(result[key] ?? []), item]; return result; }, {});
 
   return <div className={`app-shell ${collapsed ? "sidebar-collapsed" : ""}`}>
-    <aside className={`sidebar ${mobileOpen ? "sidebar-open" : ""}`}>
+      <aside className={`sidebar ${mobileOpen ? "sidebar-open" : ""}`}>
       <div className="sidebar-brand"><Link to={basePath} onClick={() => setMobileOpen(false)}><span className="brand-mark"><Sparkles size={17} /></span><span className="brand-name">creative-crew</span></Link><button className="mobile-close" aria-label="Close navigation" onClick={() => setMobileOpen(false)} type="button"><X size={19} /></button></div>
       <div className="workspace-switcher"><span className="workspace-logo">cc</span><span className="workspace-copy"><strong>creative-crew</strong><small>Studio workspace</small></span><ChevronDown size={15} /></div>
-      <nav className="sidebar-nav" aria-label="Workspace navigation">
+      <nav id="workspace-navigation" className="sidebar-nav" aria-label="Workspace navigation">
         {Object.entries(groupedItems).map(([group, items]) => <div className="nav-group" key={group}><span className="nav-group-label">{group}</span>{items.map((item) => { const Icon = item.icon; const path = `${basePath}${item.path ? `/${item.path}` : ""}`; const active = item.path ? location.pathname.startsWith(path) : location.pathname === basePath; return <Link className={`nav-item ${active ? "nav-active" : ""}`} to={path} key={item.path || "overview"} onClick={() => setMobileOpen(false)}><Icon size={17} /><span>{item.label}</span>{item.path === "notifications" && unreadCount > 0 ? <em>{unreadCount}</em> : null}</Link>; })}</div>)}
       </nav>
       <div className="sidebar-bottom"><div className="sidebar-tip"><span className="tip-icon"><Sparkles size={15} /></span><strong>Make space for the next good idea.</strong><small>Capture work as soon as it becomes clear.</small><button type="button" onClick={() => openQuickAdd("task")}>Quick add <ArrowUpRight size={14} /></button></div><div className="sidebar-collapse"><button type="button" onClick={() => setCollapsed((value) => !value)}>{collapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}<span>{collapsed ? "Expand" : "Collapse sidebar"}</span></button></div></div>
     </aside>
     {mobileOpen ? <button className="drawer-scrim" aria-label="Close navigation" onClick={() => setMobileOpen(false)} type="button" /> : null}
     <div className="app-main">
-      <header className="topbar"><div className="topbar-left"><IconButton className="mobile-menu" label="Open navigation" icon={Menu} onClick={() => setMobileOpen(true)} /><div className="mobile-brand"><span className="brand-mark"><Sparkles size={15} /></span><span>creative-crew</span></div><button className="search-trigger" type="button" onClick={() => setCommandOpen(true)}><Search size={17} /><span>Search workspace...</span><kbd><Command size={12} /> K</kbd></button></div><div className="topbar-actions"><Badge tone={mode === "firebase" ? "success" : "blue"} dot>{mode === "firebase" ? "Connected" : "Demo mode"}</Badge><IconButton label={dark ? "Use light theme" : "Use dark theme"} icon={dark ? Sun : Moon} onClick={() => setDark((value) => !value)} /><IconButton label="Help and activity" icon={HelpCircle} onClick={() => notify("Try Ctrl/Cmd + K to jump anywhere, or use Quick add to create work.", "info")} /><button className="notification-button" type="button" aria-label={`${unreadCount} unread notifications`} onClick={() => go(`${basePath}/notifications`)}><Bell size={18} />{unreadCount > 0 ? <span>{unreadCount}</span> : null}</button><div className="profile-wrap"><button className="profile-trigger" type="button" aria-expanded={profileOpen} onClick={() => setProfileOpen((value) => !value)}><Avatar name={user.name} size="sm" tone="cyan" /><span className="profile-trigger-copy"><strong>{user.name}</strong><small>{roleLabels[user.role]}</small></span><ChevronDown size={15} /></button>{profileOpen ? <><div style={{ position: "fixed", inset: 0, zIndex: 45 }} onClick={() => setProfileOpen(false)} aria-hidden="true" /><div className="profile-menu"><div className="profile-menu-head"><Avatar name={user.name} size="md" tone="cyan" /><span><strong>{user.name}</strong><small>{user.email}</small></span></div><button type="button" onClick={() => { setProfileOpen(false); go(`${basePath}/settings`); }}>Profile & settings</button><button type="button" onClick={() => { setProfileOpen(false); void logout(); navigate("/login"); }}><LogOut size={16} />Log out</button></div></> : null}</div></div></header>
+      <header className="topbar"><div className="topbar-left"><IconButton className="mobile-menu" label={mobileOpen ? "Close navigation" : "Open navigation"} icon={mobileOpen ? X : Menu} aria-expanded={mobileOpen} aria-controls="workspace-navigation" onClick={() => setMobileOpen((value) => !value)} /><div className="mobile-brand"><span className="brand-mark"><Sparkles size={15} /></span><span>creative-crew</span></div><button className="search-trigger" type="button" onClick={() => setCommandOpen(true)}><Search size={17} /><span>Search workspace...</span><kbd><Command size={12} /> K</kbd></button></div><div className="topbar-actions"><Badge tone={mode === "firebase" ? "success" : "blue"} dot>{mode === "firebase" ? "Connected" : "Demo mode"}</Badge><IconButton label="Help and activity" icon={HelpCircle} onClick={() => notify("Try Ctrl/Cmd + K to jump anywhere, or use Quick add to create work.", "info")} /><button className="notification-button" type="button" aria-label={`${unreadCount} unread notifications`} onClick={() => go(`${basePath}/notifications`)}><Bell size={18} />{unreadCount > 0 ? <span>{unreadCount}</span> : null}</button><div className="profile-wrap"><button className="profile-trigger" type="button" aria-expanded={profileOpen} onClick={() => setProfileOpen((value) => !value)}><Avatar name={user.name} size="sm" tone="cyan" /><span className="profile-trigger-copy"><strong>{user.name}</strong><small>{roleLabels[user.role]}</small></span><ChevronDown size={15} /></button>{profileOpen ? <div className="profile-menu"><div className="profile-menu-head"><Avatar name={user.name} size="md" tone="cyan" /><span><strong>{user.name}</strong><small>{user.email}</small></span></div>{canOpenSettings ? <button type="button" onClick={() => { setProfileOpen(false); go(`${basePath}/settings`); }}>Profile & settings</button> : null}<button type="button" onClick={() => { setProfileOpen(false); void logout(); navigate("/login"); }}><LogOut size={16} />Log out</button></div> : null}</div></div></header>
       <main className="page-content"><Outlet /></main>
     </div>
     <button className="floating-add" type="button" aria-label="Quick add" onClick={() => openQuickAdd()}><Plus size={20} /><span>Quick add</span></button>
