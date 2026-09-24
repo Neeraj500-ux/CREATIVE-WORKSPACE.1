@@ -47,8 +47,7 @@ function GoogleIcon() {
 function Spinner({ light = false }: { light?: boolean }) {
   return (
     <span
-      aria-label="Loading"
-      role="status"
+      aria-hidden="true"
       className={
         "h-4 w-4 shrink-0 animate-spin rounded-full border-2 " +
         (light
@@ -94,9 +93,9 @@ const quickCards = [
 ];
 
 const workspaceStats = [
-  { value: "24/7", label: "workspace access", icon: CalendarClock },
-  { value: "100%", label: "team visibility", icon: UsersRound },
-  { value: "1", label: "shared rhythm", icon: BarChart3 },
+  { value: "24/7", label: "Workspace access", icon: CalendarClock },
+  { value: "100%", label: "Team visibility", icon: UsersRound },
+  { value: "1", label: "Shared rhythm", icon: BarChart3 },
 ];
 
 const motionStyles =
@@ -107,7 +106,11 @@ const motionStyles =
   ".login-float{animation:login-float 8s ease-in-out infinite}" +
   ".login-sheen:after{content:'';position:absolute;inset-block:0;left:-40%;width:35%;pointer-events:none;transform:skewX(-18deg);background:linear-gradient(90deg,transparent,rgba(255,255,255,.36),transparent)}" +
   ".login-sheen:hover:after{animation:login-sheen .9s ease-out}" +
-  "@media(prefers-reduced-motion:reduce){.login-rise,.login-float,.login-sheen:after{animation:none!important}.login-sheen:hover:after{animation:none!important}}";
+  "@media(prefers-reduced-motion:reduce){" +
+  ".login-rise,.login-float,.login-sheen:after,.login-sheen:hover:after{animation:none!important}" +
+  ".login-rise{opacity:1!important;transform:none!important}" +
+  ".login-motion-off,.login-motion-off *{animation:none!important;transition-duration:.01ms!important}" +
+  "}";
 
 const getAuthErrorMessage = (error: unknown, fallback: string) => {
   const code =
@@ -149,24 +152,24 @@ export function Login() {
   const [submitting, setSubmitting] = useState(false);
   const [googleSubmitting, setGoogleSubmitting] = useState(false);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
 
   const isBusy = loading || submitting || googleSubmitting;
 
-  const clearFeedback = () => {
-    setError("");
-    setSuccess("");
-  };
+  const clearFeedback = () => setError("");
 
   const redirectAfterLogin = () => {
     const state = location.state as LocationState | null;
+    // Only allow in-app paths; reject protocol-relative URLs like "//evil.com".
     const destination =
-      state?.from && state.from.startsWith("/") ? state.from : "/";
+      state?.from && state.from.startsWith("/") && !state.from.startsWith("//")
+        ? state.from
+        : "/";
     navigate(destination, { replace: true });
   };
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (isBusy) return;
 
     const cleanEmail = email.trim();
     clearFeedback();
@@ -189,7 +192,6 @@ export function Login() {
 
     try {
       await login(cleanEmail, password);
-      setSuccess("Signed in successfully.");
       notify("Welcome back to your workspace.", "success");
       redirectAfterLogin();
     } catch (loginError) {
@@ -202,12 +204,12 @@ export function Login() {
   };
 
   const continueWithGoogle = async () => {
+    if (isBusy) return;
     clearFeedback();
     setGoogleSubmitting(true);
 
     try {
       await loginWithGoogle();
-      setSuccess("Signed in successfully.");
       notify("Welcome back to your workspace.", "success");
       redirectAfterLogin();
     } catch (googleError) {
@@ -222,8 +224,11 @@ export function Login() {
     }
   };
 
+  const inputClass =
+    "h-14 w-full rounded-2xl border border-blue-100/90 bg-blue-50/75 pl-12 text-base text-slate-800 shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_8px_20px_rgba(37,99,235,0.04)] outline-none transition duration-300 placeholder:text-slate-400 hover:border-blue-200 hover:bg-blue-50 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100 disabled:cursor-not-allowed disabled:opacity-70 sm:text-sm";
+
   return (
-    <main className="relative isolate min-h-screen overflow-hidden bg-[#edf6ff] text-[#102957] selection:bg-blue-200 selection:text-blue-950">
+    <main className="login-motion-off relative isolate min-h-screen overflow-x-hidden bg-[#edf6ff] text-[#102957] selection:bg-blue-200 selection:text-blue-950">
       <style>{motionStyles}</style>
 
       <div
@@ -242,7 +247,8 @@ export function Login() {
       />
 
       <div className="relative mx-auto grid min-h-screen w-full max-w-[1560px] grid-cols-1 gap-4 p-3 sm:gap-6 sm:p-5 lg:grid-cols-[minmax(0,1.02fr)_minmax(27rem,0.98fr)] lg:gap-7 lg:p-6">
-        <section className="order-2 relative isolate flex min-h-0 flex-col overflow-hidden rounded-[1.65rem] border border-white/95 bg-[linear-gradient(135deg,#ffffff_0%,#f2f8ff_47%,#dff3ff_100%)] px-5 py-6 text-[#173b82] shadow-[0_28px_80px_rgba(56,105,180,0.16)] sm:rounded-[2rem] sm:px-8 sm:py-8 lg:order-1 lg:min-h-[calc(100vh-3rem)] lg:px-10 lg:py-9 xl:px-12 xl:py-10">
+        {/* Brand / intro panel */}
+        <section className="relative isolate flex min-h-0 min-w-0 flex-col overflow-hidden rounded-[1.65rem] border border-white/95 bg-[linear-gradient(135deg,#ffffff_0%,#f2f8ff_47%,#dff3ff_100%)] px-5 py-6 text-[#173b82] shadow-[0_28px_80px_rgba(56,105,180,0.16)] sm:rounded-[2rem] sm:px-8 sm:py-8 lg:min-h-[calc(100vh-3rem)] lg:px-10 lg:py-9 xl:px-12 xl:py-10">
           <div
             aria-hidden="true"
             className="pointer-events-none absolute -bottom-52 -right-36 h-[34rem] w-[34rem] rounded-full border border-blue-300/25 shadow-[0_0_0_38px_rgba(37,99,235,0.05),0_0_0_78px_rgba(14,165,233,0.04)]"
@@ -259,7 +265,7 @@ export function Login() {
           <div className="relative z-10 flex items-center justify-between gap-4">
             <Link
               to="/"
-              className="group flex min-w-0 items-center gap-3 text-[#173b82] no-underline"
+              className="group flex min-h-11 min-w-0 items-center gap-3 rounded-2xl text-[#173b82] no-underline focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-200"
             >
               <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl border border-blue-200/80 bg-white/90 text-blue-600 shadow-[0_10px_24px_rgba(37,99,235,0.1)] transition duration-300 group-hover:-rotate-3 group-hover:scale-105 group-hover:bg-white">
                 <Layers3 className="h-5 w-5" />
@@ -268,25 +274,25 @@ export function Login() {
                 <strong className="block truncate text-[17px] leading-none tracking-[-0.03em]">
                   creative-crew
                 </strong>
-                <small className="mt-1 block text-[9px] font-bold tracking-[0.23em] text-blue-600/60">
+                <small className="mt-1 block text-[11px] font-bold tracking-[0.16em] text-blue-600/70">
                   CREATIVE WORKSPACE
                 </small>
               </span>
             </Link>
 
-            <span className="hidden shrink-0 items-center gap-2 rounded-full border border-blue-200/80 bg-white/85 px-3 py-2 text-[9px] font-bold tracking-[0.14em] text-blue-700 shadow-lg shadow-blue-500/10 backdrop-blur-md sm:inline-flex">
+            <span className="hidden shrink-0 items-center gap-2 rounded-full border border-blue-200/80 bg-white/85 px-3 py-2 text-[11px] font-bold tracking-[0.1em] text-blue-700 shadow-lg shadow-blue-500/10 backdrop-blur-md sm:inline-flex">
               <Sparkles className="h-3.5 w-3.5 text-blue-500" />
               PLAN. CREATE. GROW.
             </span>
           </div>
 
           <div className="relative z-10 my-9 max-w-3xl sm:my-12 lg:my-auto lg:py-8">
-            <span className="inline-flex items-center gap-2 text-[10px] font-extrabold uppercase tracking-[0.18em] text-blue-600/80">
-              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-blue-500" />
+            <span className="inline-flex items-center gap-2 text-xs font-extrabold uppercase tracking-[0.12em] text-blue-600">
+              <span className="h-1.5 w-1.5 shrink-0 animate-pulse rounded-full bg-blue-500" />
               One shared space for your best work
             </span>
 
-            <h1 className="mt-5 max-w-3xl text-[clamp(2.4rem,9vw,5.2rem)] font-semibold leading-[0.96] tracking-[-0.07em] sm:text-[clamp(3rem,6vw,5.4rem)]">
+            <h1 className="mt-5 max-w-3xl text-[clamp(2.2rem,9vw,5.2rem)] font-semibold leading-[0.98] tracking-[-0.06em] sm:text-[clamp(3rem,6vw,5.4rem)]">
               Big ideas.
               <br />
               Creative minds.
@@ -300,11 +306,19 @@ export function Login() {
               meaningful work.
             </p>
 
+            <a
+              href="#signin"
+              className="mt-6 inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 to-cyan-500 px-6 text-sm font-extrabold text-white shadow-[0_14px_30px_rgba(37,99,235,0.28)] transition hover:-translate-y-0.5 focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-200 lg:hidden"
+            >
+              Sign in below
+              <ArrowRight aria-hidden="true" className="h-4 w-4 rotate-90" />
+            </a>
+
             <div className="mt-6 flex flex-wrap gap-x-5 gap-y-3">
               {highlights.map((item) => (
                 <span
                   key={item}
-                  className="flex items-center gap-2 text-xs text-slate-700"
+                  className="flex items-center gap-2 text-sm text-slate-700"
                 >
                   <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-blue-100 text-blue-600 shadow-inner shadow-white/80">
                     <Check className="h-3.5 w-3.5" />
@@ -316,7 +330,10 @@ export function Login() {
 
             <div className="mt-7 grid grid-cols-1 gap-3 min-[440px]:grid-cols-3">
               {quickCards.map(
-                ({ title, body, icon: Icon, iconClass, iconBackground }, index) => (
+                (
+                  { title, body, icon: Icon, iconClass, iconBackground },
+                  index,
+                ) => (
                   <div
                     key={title}
                     className="login-rise min-w-0 rounded-2xl border border-white/90 bg-white/75 p-3.5 shadow-[0_12px_30px_rgba(37,99,235,0.08)] backdrop-blur-xl transition duration-300 hover:-translate-y-1 hover:bg-white/95 hover:shadow-[0_18px_34px_rgba(37,99,235,0.12)]"
@@ -330,10 +347,10 @@ export function Login() {
                     >
                       <Icon className={"h-4 w-4 " + iconClass} />
                     </span>
-                    <strong className="mt-3 block truncate text-xs font-extrabold text-[#173b82]">
+                    <strong className="mt-3 block truncate text-sm font-extrabold text-[#173b82]">
                       {title}
                     </strong>
-                    <span className="mt-1 block truncate text-[11px] text-slate-500">
+                    <span className="mt-1 block truncate text-xs text-slate-500">
                       {body}
                     </span>
                   </div>
@@ -351,7 +368,7 @@ export function Login() {
                   <strong className="mt-2 block text-sm font-extrabold text-[#173b82]">
                     {value}
                   </strong>
-                  <span className="mt-0.5 block text-[8px] font-semibold uppercase leading-4 tracking-[0.05em] text-slate-500 sm:text-[9px] sm:tracking-[0.08em]">
+                  <span className="mt-0.5 block break-words text-[11px] font-semibold leading-4 text-slate-500 sm:text-xs">
                     {label}
                   </span>
                 </div>
@@ -365,12 +382,15 @@ export function Login() {
                 <CheckCircle2 className="h-5 w-5 text-blue-600" />
               </span>
               <span className="min-w-0 flex-1">
-                <strong className="block text-xs">Workspace clarity</strong>
-                <span className="mt-1 block truncate text-[11px] text-slate-500">
+                <strong className="block text-sm">Workspace clarity</strong>
+                <span className="mt-1 block text-xs text-slate-500">
                   Everything moving in one rhythm.
                 </span>
               </span>
-              <ChevronRight className="h-4 w-4 shrink-0 text-blue-500 transition group-hover:translate-x-1" />
+              <ChevronRight
+                aria-hidden="true"
+                className="h-4 w-4 shrink-0 text-blue-500 transition group-hover:translate-x-1"
+              />
             </div>
 
             <div className="hidden items-center gap-3 rounded-2xl border border-white/80 bg-white/50 px-4 py-3 text-xs text-slate-600 backdrop-blur-md sm:flex">
@@ -378,21 +398,25 @@ export function Login() {
                 <Zap className="h-4 w-4" />
               </span>
               <span>
-                <strong className="block text-[11px] text-[#173b82]">
+                <strong className="block text-xs text-[#173b82]">
                   Ready when you are
                 </strong>
-                <span className="text-[10px]">Your next idea starts here.</span>
+                <span className="text-xs">Your next idea starts here.</span>
               </span>
             </div>
           </div>
 
-          <div className="relative z-10 mt-5 flex items-center justify-between gap-5 text-[11px] text-slate-500 sm:mt-6 sm:text-xs">
+          <div className="relative z-10 mt-5 flex items-center justify-between gap-5 text-xs text-slate-500 sm:mt-6">
             <span>Built for the work between the big ideas.</span>
-            <Sparkles className="h-4 w-4 shrink-0 text-blue-500" />
+            <Sparkles
+              aria-hidden="true"
+              className="h-4 w-4 shrink-0 text-blue-500"
+            />
           </div>
         </section>
 
-        <section className="order-1 relative flex min-h-0 items-center justify-center px-0 py-1 sm:px-2 sm:py-3 lg:order-2 lg:min-h-[calc(100vh-3rem)] lg:px-4 lg:py-6 xl:px-8">
+        {/* Sign-in panel */}
+        <section id="signin" className="relative flex min-h-0 scroll-mt-4 min-w-0 items-center justify-center px-0 py-1 sm:px-2 sm:py-3 lg:min-h-[calc(100vh-3rem)] lg:px-4 lg:py-6 xl:px-8">
           <div
             aria-hidden="true"
             className="login-float pointer-events-none absolute right-[-3rem] top-[-2rem] h-60 w-60 rounded-full bg-sky-200/55 blur-3xl"
@@ -415,38 +439,27 @@ export function Login() {
                 className="pointer-events-none absolute -right-16 -top-20 h-48 w-48 rounded-full border border-blue-100/80 bg-blue-100/20"
               />
 
-              <div className="relative z-10 mb-6 flex items-center gap-3 lg:hidden">
-                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-blue-600 to-cyan-500 text-white shadow-lg shadow-blue-500/20">
-                  <Layers3 className="h-5 w-5" />
-                </span>
-                <span className="min-w-0">
-                  <strong className="block truncate text-base leading-none text-[#173b82]">
-                    creative-crew
-                  </strong>
-                  <small className="mt-1 block text-[8px] font-bold tracking-[0.22em] text-slate-400">
-                    CREATIVE WORKSPACE
-                  </small>
-                </span>
-              </div>
-
               <header className="relative z-10">
-                <span className="inline-flex items-center gap-2 rounded-full border border-blue-100 bg-blue-50/90 px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-[0.14em] text-blue-600">
+                <span className="inline-flex items-center gap-2 rounded-full border border-blue-100 bg-blue-50/90 px-3 py-1.5 text-xs font-extrabold uppercase tracking-[0.1em] text-blue-600">
                   <LockKeyhole className="h-3.5 w-3.5 shrink-0" />
                   Secure workspace
                 </span>
 
-                <h2 className="mt-5 bg-gradient-to-br from-[#0b2554] via-[#173b82] to-blue-600 bg-clip-text text-[clamp(2.45rem,10.5vw,4.2rem)] font-semibold leading-[0.96] tracking-[-0.075em] text-transparent sm:mt-6 sm:text-[clamp(3rem,5vw,4.4rem)]">
+                <h2 className="mt-5 bg-gradient-to-br from-[#0b2554] via-[#173b82] to-blue-600 bg-clip-text pb-1 text-[clamp(2.2rem,10.5vw,4.2rem)] font-semibold leading-[1] tracking-[-0.06em] text-transparent sm:mt-6 sm:text-[clamp(3rem,5vw,4.4rem)]">
                   Welcome back.
                 </h2>
 
                 <div className="mt-5 flex flex-wrap items-center gap-3">
-                  <span className="h-1.5 w-14 rounded-full bg-gradient-to-r from-blue-600 via-blue-500 to-cyan-400 shadow-[0_0_16px_rgba(37,99,235,0.32)]" />
-                  <span className="text-[9px] font-extrabold uppercase tracking-[0.14em] text-blue-600/75 sm:text-[10px]">
+                  <span
+                    aria-hidden="true"
+                    className="h-1.5 w-14 rounded-full bg-gradient-to-r from-blue-600 via-blue-500 to-cyan-400 shadow-[0_0_16px_rgba(37,99,235,0.32)]"
+                  />
+                  <span className="text-xs font-extrabold uppercase tracking-[0.1em] text-blue-600">
                     Your creative space is ready
                   </span>
                 </div>
 
-                <p className="mt-4 max-w-md text-sm leading-6 text-slate-500 sm:mt-5 sm:text-base sm:leading-7">
+                <p className="mt-4 max-w-md text-sm leading-6 text-slate-600 sm:mt-5 sm:text-base sm:leading-7">
                   Sign in to pick up exactly where your team left off.
                 </p>
               </header>
@@ -456,7 +469,7 @@ export function Login() {
                 onClick={continueWithGoogle}
                 disabled={isBusy}
                 aria-busy={googleSubmitting}
-                className="group/google relative mt-7 flex min-h-14 w-full items-center justify-center overflow-hidden rounded-2xl border border-blue-100/90 bg-white/95 px-4 text-sm font-semibold text-slate-700 shadow-[0_12px_28px_rgba(15,52,110,0.07)] backdrop-blur-xl transition duration-300 hover:-translate-y-0.5 hover:border-blue-300 hover:bg-white hover:shadow-[0_18px_36px_rgba(37,99,235,0.14)] focus:outline-none focus:ring-4 focus:ring-blue-100 disabled:cursor-not-allowed disabled:opacity-60 sm:mt-8 sm:min-h-[3.75rem] sm:text-base"
+                className="group/google relative mt-7 flex min-h-14 w-full items-center justify-center overflow-hidden rounded-2xl border border-blue-100/90 bg-white/95 px-10 text-sm font-semibold text-slate-700 shadow-[0_12px_28px_rgba(15,52,110,0.07)] backdrop-blur-xl transition duration-300 hover:-translate-y-0.5 hover:border-blue-300 hover:bg-white hover:shadow-[0_18px_36px_rgba(37,99,235,0.14)] focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-200 active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60 sm:mt-8 sm:min-h-[3.75rem] sm:text-base"
               >
                 <span className="flex min-w-0 items-center justify-center gap-3 text-center">
                   {googleSubmitting ? <Spinner /> : <GoogleIcon />}
@@ -467,11 +480,14 @@ export function Login() {
                   </span>
                 </span>
                 {!googleSubmitting && (
-                  <ArrowRight className="absolute right-4 h-4 w-4 text-slate-400 transition duration-300 group-hover/google:translate-x-1 group-hover/google:text-blue-600" />
+                  <ArrowRight
+                    aria-hidden="true"
+                    className="absolute right-4 h-4 w-4 text-slate-400 transition duration-300 group-hover/google:translate-x-1 group-hover/google:text-blue-600"
+                  />
                 )}
               </button>
 
-              <div className="my-6 flex items-center gap-3 text-[10px] text-slate-400 sm:my-7 sm:text-[11px]">
+              <div className="my-6 flex items-center gap-3 text-xs text-slate-500 sm:my-7">
                 <span className="h-px flex-1 bg-gradient-to-r from-transparent via-slate-200 to-slate-200" />
                 <span className="shrink-0">or continue with email</span>
                 <span className="h-px flex-1 bg-gradient-to-l from-transparent via-slate-200 to-transparent" />
@@ -482,38 +498,52 @@ export function Login() {
                 noValidate
                 className="relative z-10 space-y-4 sm:space-y-5"
               >
-                <label className="block" htmlFor="work-email">
-                  <span className="mb-2 block text-[13px] font-extrabold text-slate-700 sm:text-sm">
+                <div>
+                  <label
+                    htmlFor="work-email"
+                    className="mb-2 block text-sm font-extrabold text-slate-700"
+                  >
                     Work email
-                  </span>
-                  <span className="group/input relative block">
-                    <Mail className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 transition group-focus-within/input:text-blue-600" />
+                  </label>
+                  <div className="group/input relative">
+                    <Mail
+                      aria-hidden="true"
+                      className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 transition group-focus-within/input:text-blue-600"
+                    />
                     <input
                       id="work-email"
                       name="email"
                       type="email"
+                      inputMode="email"
                       autoComplete="email"
                       autoCapitalize="none"
                       spellCheck={false}
                       placeholder="you@company.com"
                       value={email}
+                      disabled={isBusy}
                       onChange={(event) => {
                         setEmail(event.target.value);
                         clearFeedback();
                       }}
                       aria-invalid={Boolean(error)}
                       aria-describedby={error ? "login-feedback" : undefined}
-                      className="h-14 w-full rounded-2xl border border-blue-100/90 bg-blue-50/75 pl-12 pr-4 text-sm text-slate-800 shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_8px_20px_rgba(37,99,235,0.04)] outline-none transition duration-300 placeholder:text-slate-400 hover:border-blue-200 hover:bg-blue-50 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
+                      className={inputClass + " pr-4"}
                     />
-                  </span>
-                </label>
+                  </div>
+                </div>
 
-                <label className="block" htmlFor="workspace-password">
-                  <span className="mb-2 block text-[13px] font-extrabold text-slate-700 sm:text-sm">
+                <div>
+                  <label
+                    htmlFor="workspace-password"
+                    className="mb-2 block text-sm font-extrabold text-slate-700"
+                  >
                     Password
-                  </span>
-                  <span className="group/input relative block">
-                    <LockKeyhole className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 transition group-focus-within/input:text-blue-600" />
+                  </label>
+                  <div className="group/input relative">
+                    <LockKeyhole
+                      aria-hidden="true"
+                      className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 transition group-focus-within/input:text-blue-600"
+                    />
                     <input
                       id="workspace-password"
                       name="password"
@@ -521,20 +551,21 @@ export function Login() {
                       autoComplete="current-password"
                       placeholder="Enter your password"
                       value={password}
+                      disabled={isBusy}
                       onChange={(event) => {
                         setPassword(event.target.value);
                         clearFeedback();
                       }}
                       aria-invalid={Boolean(error)}
                       aria-describedby={error ? "login-feedback" : undefined}
-                      className="h-14 w-full rounded-2xl border border-blue-100/90 bg-blue-50/75 pl-12 pr-14 text-sm text-slate-800 shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_8px_20px_rgba(37,99,235,0.04)] outline-none transition duration-300 placeholder:text-slate-400 hover:border-blue-200 hover:bg-blue-50 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
+                      className={inputClass + " pr-14"}
                     />
                     <button
                       type="button"
                       aria-label={showPassword ? "Hide password" : "Show password"}
                       aria-pressed={showPassword}
                       onClick={() => setShowPassword((value) => !value)}
-                      className="absolute right-2 top-1/2 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-xl text-slate-400 transition hover:bg-blue-100 hover:text-blue-600 focus:outline-none focus:ring-4 focus:ring-blue-100"
+                      className="absolute right-1.5 top-1/2 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-xl text-slate-500 transition hover:bg-blue-100 hover:text-blue-600 focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-200"
                     >
                       {showPassword ? (
                         <EyeOff className="h-4 w-4" />
@@ -542,99 +573,70 @@ export function Login() {
                         <Eye className="h-4 w-4" />
                       )}
                     </button>
-                  </span>
-                </label>
+                  </div>
+                </div>
 
                 {error ? (
                   <div
                     id="login-feedback"
                     role="alert"
-                    aria-live="polite"
-                    className="flex items-start gap-3 rounded-2xl border border-red-200/90 bg-red-50/85 px-4 py-3 text-xs leading-5 text-red-700 shadow-sm"
+                    className="flex items-start gap-3 rounded-2xl border border-red-200/90 bg-red-50/85 px-4 py-3 text-sm leading-5 text-red-700 shadow-sm"
                   >
-                    <span className="mt-0.5 grid h-4 w-4 shrink-0 place-items-center rounded-full bg-red-100 text-[10px] font-black">
+                    <span
+                      aria-hidden="true"
+                      className="mt-0.5 grid h-4 w-4 shrink-0 place-items-center rounded-full bg-red-100 text-[11px] font-black"
+                    >
                       !
                     </span>
-                    <span>{error}</span>
-                  </div>
-                ) : success ? (
-                  <div
-                    id="login-feedback"
-                    role="status"
-                    aria-live="polite"
-                    className="flex items-start gap-3 rounded-2xl border border-emerald-200/90 bg-emerald-50/85 px-4 py-3 text-xs leading-5 text-emerald-700 shadow-sm"
-                  >
-                    <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
-                    <span>{success}</span>
+                    <span className="min-w-0 break-words">{error}</span>
                   </div>
                 ) : null}
 
-                <div className="flex flex-col gap-3 pt-0.5 text-xs sm:flex-row sm:items-center sm:justify-between">
-                  <span className="inline-flex items-center gap-1.5 text-slate-400">
-                    <ShieldCheck className="h-4 w-4 shrink-0 text-emerald-500" />
+                <div className="flex flex-col gap-1 pt-0.5 text-sm sm:flex-row sm:items-center sm:justify-between">
+                  <span className="inline-flex items-center gap-1.5 text-slate-500">
+                    <ShieldCheck
+                      aria-hidden="true"
+                      className="h-4 w-4 shrink-0 text-emerald-500"
+                    />
                     Secure Firebase session
                   </span>
                   <Link
                     to="/reset-password"
-                    className="w-fit rounded-md font-extrabold text-blue-600 transition hover:text-blue-800 hover:underline focus:outline-none focus:ring-4 focus:ring-blue-100"
+                    className="inline-flex min-h-11 w-fit items-center rounded-md font-extrabold text-blue-600 transition hover:text-blue-800 hover:underline focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-200"
                   >
                     Forgot password?
                   </Link>
-                </div>
-
-                <div className="demo-accounts">
-                  <div className="demo-accounts-head">
-                    <span><Zap className="h-3.5 w-3.5" /> Quick Demo Accounts</span>
-                    <small>Password: demo123</small>
-                  </div>
-                  <div className="demo-account-list">
-                    <button type="button" onClick={() => { setEmail("director@creative-crew.local"); setPassword("demo123"); clearFeedback(); }}>
-                      <span className="demo-account-icon"><Sparkles className="h-3 w-3" /></span>
-                      <span><strong>Director</strong><small>director@creative-crew.local</small></span>
-                    </button>
-                    <button type="button" onClick={() => { setEmail("manager@creative-crew.local"); setPassword("demo123"); clearFeedback(); }}>
-                      <span className="demo-account-icon"><UsersRound className="h-3 w-3" /></span>
-                      <span><strong>Manager</strong><small>manager@creative-crew.local</small></span>
-                    </button>
-                    <button type="button" onClick={() => { setEmail("lead@creative-crew.local"); setPassword("demo123"); clearFeedback(); }}>
-                      <span className="demo-account-icon"><Layers3 className="h-3 w-3" /></span>
-                      <span><strong>Team Lead</strong><small>lead@creative-crew.local</small></span>
-                    </button>
-                    <button type="button" onClick={() => { setEmail("employee@creative-crew.local"); setPassword("demo123"); clearFeedback(); }}>
-                      <span className="demo-account-icon"><CheckCircle2 className="h-3 w-3" /></span>
-                      <span><strong>Employee</strong><small>employee@creative-crew.local</small></span>
-                    </button>
-                  </div>
                 </div>
 
                 <button
                   type="submit"
                   disabled={isBusy}
                   aria-busy={submitting || loading}
-                  className="login-sheen group/submit relative flex h-14 w-full items-center justify-center gap-3 overflow-hidden rounded-2xl bg-gradient-to-r from-blue-600 via-blue-500 to-cyan-500 px-5 text-sm font-extrabold text-white shadow-[0_18px_38px_rgba(37,99,235,0.3)] transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_24px_48px_rgba(37,99,235,0.36)] focus:outline-none focus:ring-4 focus:ring-blue-200 disabled:cursor-not-allowed disabled:opacity-60 sm:text-base"
+                  className="login-sheen group/submit relative flex h-14 w-full items-center justify-center gap-3 overflow-hidden rounded-2xl bg-gradient-to-r from-blue-600 via-blue-500 to-cyan-500 px-5 text-base font-extrabold text-white shadow-[0_18px_38px_rgba(37,99,235,0.3)] transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_24px_48px_rgba(37,99,235,0.36)] focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-200 active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {submitting || loading ? (
                     <>
                       <Spinner light />
-                      Signing in...
+                      <span role="status">Signing in...</span>
                     </>
                   ) : (
                     <>
                       Sign in to workspace
-                      <ArrowRight className="h-4 w-4 transition duration-300 group-hover/submit:translate-x-1" />
+                      <ArrowRight
+                        aria-hidden="true"
+                        className="h-4 w-4 transition duration-300 group-hover/submit:translate-x-1"
+                      />
                     </>
                   )}
                 </button>
               </form>
 
-              <div className="relative z-10 mt-6 flex items-start justify-center gap-2 text-center text-[10px] leading-5 text-slate-400 sm:mt-7 sm:text-[11px]">
-                <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
+              <div className="relative z-10 mt-6 flex items-start justify-center gap-2 text-center text-xs leading-5 text-slate-500 sm:mt-7">
+                <ShieldCheck
+                  aria-hidden="true"
+                  className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500"
+                />
                 <span>Your workspace access is protected and role-aware.</span>
-              </div>
-
-              <div className="relative z-10 mt-3 flex items-center justify-center gap-2 text-[9px] text-slate-400 sm:text-[10px]">
-                <Link2 className="h-3.5 w-3.5 shrink-0 text-blue-400" />
-                Firebase-secured workspace access
               </div>
             </div>
           </div>
