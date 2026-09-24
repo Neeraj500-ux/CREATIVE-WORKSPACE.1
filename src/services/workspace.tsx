@@ -2,7 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import { collection, doc, getDocs, query, setDoc, updateDoc, where } from "firebase/firestore";
 import { cloneSeed, DEMO_ORGANIZATION_ID } from "../data/seed";
 import { isOverdue } from "../lib/formatters";
-import { db, firebaseEnabled } from "./firebase";
+import { db, firebaseEnabled } from "../lib/firebase";
 import { useAuth } from "./auth";
 import type {
   ActivityItem,

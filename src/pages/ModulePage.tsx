@@ -8,7 +8,7 @@ import { formatCompactDate, formatCurrency, formatDate, formatFileSize, formatRe
 import { getDashboardPath, hasPermission } from "../lib/permissions";
 import { useAuth } from "../services/auth";
 import { useWorkspace } from "../services/workspace";
-import { firebaseStorage } from "../services/firebase";
+import { firebaseStorage } from "../lib/firebase";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import type { LucideIcon } from "lucide-react";
 import type { Client, GoalRecord, Priority, Project, Role, Task, TaskStatus, UserProfile } from "../types";
