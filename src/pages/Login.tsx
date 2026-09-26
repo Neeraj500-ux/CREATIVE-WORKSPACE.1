@@ -20,7 +20,6 @@ import {
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useToast } from "../components/ui";
 import { useAuth } from "../services/auth";
-
 function GoogleIcon() {
   return (
     <svg aria-hidden="true" className="h-5 w-5 shrink-0" viewBox="0 0 24 24">
@@ -43,7 +42,6 @@ function GoogleIcon() {
     </svg>
   );
 }
-
 function Spinner({ light = false }: { light?: boolean }) {
   return (
     <span
@@ -57,17 +55,14 @@ function Spinner({ light = false }: { light?: boolean }) {
     />
   );
 }
-
 type LocationState = {
   from?: string;
 };
-
 const highlights = [
   "Clear priorities",
   "Better teamwork",
   "Meaningful progress",
 ];
-
 const quickCards = [
   {
     title: "Focus",
@@ -91,33 +86,57 @@ const quickCards = [
     iconBackground: "bg-emerald-100/90",
   },
 ];
-
 const workspaceStats = [
   { value: "24/7", label: "Workspace access", icon: CalendarClock },
   { value: "100%", label: "Team visibility", icon: UsersRound },
   { value: "1", label: "Shared rhythm", icon: BarChart3 },
 ];
-
-const motionStyles =
-  "@keyframes login-rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}" +
-  "@keyframes login-float{0%,100%{transform:translate3d(0,0,0)}50%{transform:translate3d(0,-14px,0)}}" +
-  "@keyframes login-sheen{0%{transform:translateX(-150%) skewX(-18deg)}100%{transform:translateX(340%) skewX(-18deg)}}" +
-  ".login-rise{animation:login-rise .7s cubic-bezier(.2,.8,.2,1) both}" +
-  ".login-float{animation:login-float 8s ease-in-out infinite}" +
-  ".login-sheen:after{content:'';position:absolute;inset-block:0;left:-40%;width:35%;pointer-events:none;transform:skewX(-18deg);background:linear-gradient(90deg,transparent,rgba(255,255,255,.36),transparent)}" +
-  ".login-sheen:hover:after{animation:login-sheen .9s ease-out}" +
-  "@media(prefers-reduced-motion:reduce){" +
-  ".login-rise,.login-float,.login-sheen:after,.login-sheen:hover:after{animation:none!important}" +
-  ".login-rise{opacity:1!important;transform:none!important}" +
-  ".login-motion-off,.login-motion-off *{animation:none!important;transition-duration:.01ms!important}" +
-  "}";
-
+const motionStyles = `
+  .login-page, .login-page * { box-sizing: border-box; }
+  .login-page .login-layout {
+    width: 100%; max-width: 1480px; margin-inline: auto;
+    display: grid; grid-template-columns: minmax(0, 1fr);
+  }
+  .login-page .login-layout > * { min-width: 0; }
+  @media (min-width: 1200px) {
+    .login-page .login-layout {
+      grid-template-columns: minmax(0, 1.08fr) minmax(0, .92fr);
+    }
+  }
+  @keyframes login-rise {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes login-float {
+    0%, 100% { transform: translate3d(0, 0, 0); }
+    50% { transform: translate3d(0, -12px, 0); }
+  }
+  @keyframes login-sheen {
+    from { transform: translateX(-150%) skewX(-18deg); }
+    to { transform: translateX(340%) skewX(-18deg); }
+  }
+  .login-rise { animation: login-rise .7s cubic-bezier(.2,.8,.2,1) both; }
+  .login-float { animation: login-float 9s ease-in-out infinite; }
+  .login-sheen::after {
+    content: ''; position: absolute; inset-block: 0; left: -40%; width: 35%;
+    pointer-events: none; transform: skewX(-18deg);
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,.36), transparent);
+  }
+  .login-sheen:hover::after { animation: login-sheen .9s ease-out; }
+  @media (prefers-reduced-motion: reduce) {
+    .login-rise, .login-float, .login-sheen:hover::after { animation: none !important; }
+    .login-rise { opacity: 1 !important; transform: none !important; }
+    .login-page *, .login-page *::before, .login-page *::after {
+      scroll-behavior: auto !important; animation-duration: .01ms !important;
+      animation-iteration-count: 1 !important; transition-duration: .01ms !important;
+    }
+  }
+`;
 const getAuthErrorMessage = (error: unknown, fallback: string) => {
   const code =
     typeof error === "object" && error !== null && "code" in error
       ? String((error as { code?: unknown }).code ?? "")
       : "";
-
   const messages: Record<string, string> = {
     "auth/invalid-credential":
       "The email or password is incorrect. Please check your details and try again.",
@@ -135,28 +154,22 @@ const getAuthErrorMessage = (error: unknown, fallback: string) => {
     "auth/network-request-failed":
       "A network problem interrupted sign-in. Check your connection and try again.",
   };
-
   if (code && messages[code]) return messages[code];
   return error instanceof Error && error.message ? error.message : fallback;
 };
-
 export function Login() {
   const { login, loginWithGoogle, loading } = useAuth();
   const { notify } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
-
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [googleSubmitting, setGoogleSubmitting] = useState(false);
   const [error, setError] = useState("");
-
   const isBusy = loading || submitting || googleSubmitting;
-
   const clearFeedback = () => setError("");
-
   const redirectAfterLogin = () => {
     const state = location.state as LocationState | null;
     // Only allow in-app paths; reject protocol-relative URLs like "//evil.com".
@@ -166,30 +179,24 @@ export function Login() {
         : "/";
     navigate(destination, { replace: true });
   };
-
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (isBusy) return;
-
     const cleanEmail = email.trim();
     clearFeedback();
-
     if (!cleanEmail || !password) {
       const message = "Enter your email and password.";
       setError(message);
       notify(message, "error");
       return;
     }
-
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
       const message = "Enter a valid work email address.";
       setError(message);
       notify(message, "error");
       return;
     }
-
     setSubmitting(true);
-
     try {
       await login(cleanEmail, password);
       notify("Welcome back to your workspace.", "success");
@@ -202,12 +209,10 @@ export function Login() {
       setSubmitting(false);
     }
   };
-
   const continueWithGoogle = async () => {
     if (isBusy) return;
     clearFeedback();
     setGoogleSubmitting(true);
-
     try {
       await loginWithGoogle();
       notify("Welcome back to your workspace.", "success");
@@ -223,14 +228,14 @@ export function Login() {
       setGoogleSubmitting(false);
     }
   };
-
   const inputClass =
-    "h-14 w-full rounded-2xl border border-blue-100/90 bg-blue-50/75 pl-12 text-base text-slate-800 shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_8px_20px_rgba(37,99,235,0.04)] outline-none transition duration-300 placeholder:text-slate-400 hover:border-blue-200 hover:bg-blue-50 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100 disabled:cursor-not-allowed disabled:opacity-70 sm:text-sm";
-
+    "h-14 w-full rounded-2xl border border-blue-100/90 bg-blue-50/75 pl-12 text-base text-slate-800 shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_8px_20px_rgba(37,99,235,0.04)] outline-none transition duration-300 placeholder:text-slate-400 hover:border-blue-200 hover:bg-blue-50 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100 disabled:cursor-not-allowed disabled:opacity-70 sm:text-base";
   return (
-    <main className="login-motion-off relative isolate min-h-screen overflow-x-hidden bg-[#edf6ff] text-[#102957] selection:bg-blue-200 selection:text-blue-950">
+    <main
+      className="login-page isolate bg-[#edf6ff] text-[#102957] selection:bg-blue-200 selection:text-blue-950"
+      style={{ position: "fixed", inset: 0, zIndex: 50, width: "100vw", height: "100dvh", maxWidth: "none", margin: 0, overflowX: "hidden", overflowY: "auto" }}
+    >
       <style>{motionStyles}</style>
-
       <div
         aria-hidden="true"
         className="login-float pointer-events-none fixed -right-36 -top-40 h-[26rem] w-[26rem] rounded-full bg-blue-300/25 blur-3xl"
@@ -245,10 +250,11 @@ export function Login() {
         className="login-float pointer-events-none fixed left-[-12rem] top-1/3 h-[22rem] w-[22rem] rounded-full bg-indigo-200/20 blur-3xl"
         style={{ animationDelay: "2.4s" }}
       />
-
-      <div className="relative mx-auto grid min-h-screen w-full max-w-[1560px] grid-cols-1 gap-4 p-3 sm:gap-6 sm:p-5 lg:grid-cols-[minmax(0,1.02fr)_minmax(27rem,0.98fr)] lg:gap-7 lg:p-6">
+      <div className="login-layout relative min-h-screen items-stretch gap-5 p-3 sm:gap-6 sm:p-5 xl:gap-6 xl:p-6">
         {/* Brand / intro panel */}
-        <section className="relative isolate flex min-h-0 min-w-0 flex-col overflow-hidden rounded-[1.65rem] border border-white/95 bg-[linear-gradient(135deg,#ffffff_0%,#f2f8ff_47%,#dff3ff_100%)] px-5 py-6 text-[#173b82] shadow-[0_28px_80px_rgba(56,105,180,0.16)] sm:rounded-[2rem] sm:px-8 sm:py-8 lg:min-h-[calc(100vh-3rem)] lg:px-10 lg:py-9 xl:px-12 xl:py-10">
+        <section className="relative isolate flex min-w-0 flex-col overflow-hidden rounded-[1.65rem] border border-white/90 bg-[linear-gradient(130deg,rgba(255,255,255,.90)_0%,rgba(224,240,255,.81)_48%,rgba(202,231,255,.78)_100%)] px-5 py-7 text-[#173b82] shadow-[0_24px_65px_rgba(48,99,175,.16),inset_0_1px_0_rgba(255,255,255,.95)] backdrop-blur-2xl sm:rounded-[2rem] sm:px-8 sm:py-8 xl:min-h-[calc(100vh-3rem)] xl:px-9 xl:py-9 2xl:px-12">
+          <div aria-hidden="true" className="pointer-events-none absolute inset-x-6 top-0 h-px bg-gradient-to-r from-transparent via-white to-transparent" />
+          <div aria-hidden="true" className="pointer-events-none absolute -right-24 top-1/4 h-80 w-80 rounded-full bg-cyan-200/45 blur-3xl" />
           <div
             aria-hidden="true"
             className="pointer-events-none absolute -bottom-52 -right-36 h-[34rem] w-[34rem] rounded-full border border-blue-300/25 shadow-[0_0_0_38px_rgba(37,99,235,0.05),0_0_0_78px_rgba(14,165,233,0.04)]"
@@ -261,7 +267,6 @@ export function Login() {
             aria-hidden="true"
             className="pointer-events-none absolute inset-0 opacity-[0.07] [background-image:linear-gradient(rgba(37,99,235,.12)_1px,transparent_1px),linear-gradient(90deg,rgba(37,99,235,.12)_1px,transparent_1px)] [background-size:52px_52px]"
           />
-
           <div className="relative z-10 flex items-center justify-between gap-4">
             <Link
               to="/"
@@ -279,41 +284,35 @@ export function Login() {
                 </small>
               </span>
             </Link>
-
             <span className="hidden shrink-0 items-center gap-2 rounded-full border border-blue-200/80 bg-white/85 px-3 py-2 text-[11px] font-bold tracking-[0.1em] text-blue-700 shadow-lg shadow-blue-500/10 backdrop-blur-md sm:inline-flex">
               <Sparkles className="h-3.5 w-3.5 text-blue-500" />
               PLAN. CREATE. GROW.
             </span>
           </div>
-
-          <div className="relative z-10 my-9 max-w-3xl sm:my-12 lg:my-auto lg:py-8">
+          <div className="relative z-10 my-9 min-w-0 max-w-3xl sm:my-12 xl:my-auto xl:py-8">
             <span className="inline-flex items-center gap-2 text-xs font-extrabold uppercase tracking-[0.12em] text-blue-600">
               <span className="h-1.5 w-1.5 shrink-0 animate-pulse rounded-full bg-blue-500" />
               One shared space for your best work
             </span>
-
-            <h1 className="mt-5 max-w-3xl text-[clamp(2.2rem,9vw,5.2rem)] font-semibold leading-[0.98] tracking-[-0.06em] sm:text-[clamp(3rem,6vw,5.4rem)]">
+            <h1 className="mt-5 max-w-3xl text-[clamp(2.55rem,7vw,4.6rem)] font-semibold leading-[1.04] tracking-[-0.055em] sm:text-[clamp(3.1rem,5vw,4.6rem)]">
               Big ideas.
               <br />
               Creative minds.
               <br />
               <em className="not-italic text-blue-600">One shared space.</em>
             </h1>
-
             <p className="mt-5 max-w-xl text-sm leading-7 text-slate-600 sm:mt-6 sm:text-base">
               Welcome to creative-crew — your space to organize projects,
               collaborate with your team and turn creative ideas into
               meaningful work.
             </p>
-
             <a
               href="#signin"
-              className="mt-6 inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 to-cyan-500 px-6 text-sm font-extrabold text-white shadow-[0_14px_30px_rgba(37,99,235,0.28)] transition hover:-translate-y-0.5 focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-200 lg:hidden"
+              className="mt-6 inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 to-cyan-500 px-6 text-sm font-extrabold text-white shadow-[0_14px_30px_rgba(37,99,235,0.28)] transition hover:-translate-y-0.5 focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-200 xl:hidden"
             >
               Sign in below
               <ArrowRight aria-hidden="true" className="h-4 w-4 rotate-90" />
             </a>
-
             <div className="mt-6 flex flex-wrap gap-x-5 gap-y-3">
               {highlights.map((item) => (
                 <span
@@ -327,8 +326,7 @@ export function Login() {
                 </span>
               ))}
             </div>
-
-            <div className="mt-7 grid grid-cols-1 gap-3 min-[440px]:grid-cols-3">
+            <div className="mt-7 grid grid-cols-1 gap-3 min-[390px]:grid-cols-2 min-[580px]:grid-cols-3">
               {quickCards.map(
                 (
                   { title, body, icon: Icon, iconClass, iconBackground },
@@ -357,7 +355,6 @@ export function Login() {
                 ),
               )}
             </div>
-
             <div className="mt-4 grid grid-cols-3 gap-2 sm:gap-3">
               {workspaceStats.map(({ value, label, icon: Icon }) => (
                 <div
@@ -375,7 +372,6 @@ export function Login() {
               ))}
             </div>
           </div>
-
           <div className="relative z-10 flex w-full max-w-2xl flex-col gap-3 sm:flex-row sm:items-center">
             <div className="group flex min-w-0 flex-1 items-center gap-3 rounded-2xl border border-white/95 bg-white/80 p-3.5 text-[#173b82] shadow-[0_18px_42px_rgba(37,99,235,0.1)] backdrop-blur-xl transition duration-500 hover:-translate-y-1 hover:bg-white/95">
               <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-blue-100">
@@ -392,7 +388,6 @@ export function Login() {
                 className="h-4 w-4 shrink-0 text-blue-500 transition group-hover:translate-x-1"
               />
             </div>
-
             <div className="hidden items-center gap-3 rounded-2xl border border-white/80 bg-white/50 px-4 py-3 text-xs text-slate-600 backdrop-blur-md sm:flex">
               <span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-cyan-100 text-cyan-600">
                 <Zap className="h-4 w-4" />
@@ -405,7 +400,6 @@ export function Login() {
               </span>
             </div>
           </div>
-
           <div className="relative z-10 mt-5 flex items-center justify-between gap-5 text-xs text-slate-500 sm:mt-6">
             <span>Built for the work between the big ideas.</span>
             <Sparkles
@@ -414,9 +408,8 @@ export function Login() {
             />
           </div>
         </section>
-
         {/* Sign-in panel */}
-        <section id="signin" className="relative flex min-h-0 scroll-mt-4 min-w-0 items-center justify-center px-0 py-1 sm:px-2 sm:py-3 lg:min-h-[calc(100vh-3rem)] lg:px-4 lg:py-6 xl:px-8">
+        <section id="signin" className="relative flex min-w-0 scroll-mt-4 items-center justify-center py-1 sm:px-4 sm:py-4 xl:min-h-[calc(100vh-3rem)] xl:px-2 2xl:px-7">
           <div
             aria-hidden="true"
             className="login-float pointer-events-none absolute right-[-3rem] top-[-2rem] h-60 w-60 rounded-full bg-sky-200/55 blur-3xl"
@@ -426,29 +419,24 @@ export function Login() {
             className="login-float pointer-events-none absolute bottom-[-3rem] left-[-3rem] h-56 w-56 rounded-full bg-blue-200/40 blur-3xl"
             style={{ animationDelay: "1.8s" }}
           />
-
-          <div className="login-rise relative w-full max-w-[34rem]">
+          <div className="login-rise relative min-w-0 w-full max-w-[34rem]">
             <div
               aria-hidden="true"
               className="pointer-events-none absolute -inset-1 rounded-[2rem] bg-gradient-to-br from-blue-300/85 via-white/90 to-cyan-300/85 opacity-80 blur-xl transition duration-700"
             />
-
-            <div className="relative overflow-hidden rounded-[1.8rem] border border-blue-100/90 bg-gradient-to-br from-white via-white/95 to-blue-50/90 p-5 shadow-[0_30px_90px_rgba(30,64,175,0.18)] backdrop-blur-2xl transition duration-500 hover:shadow-[0_34px_100px_rgba(30,64,175,0.22)] sm:rounded-[2rem] sm:p-8 lg:p-9 xl:p-10">
+            <div className="relative overflow-hidden rounded-[1.8rem] border border-blue-100/90 bg-gradient-to-br from-white via-white/95 to-blue-50/90 p-5 shadow-[0_30px_90px_rgba(30,64,175,0.18)] backdrop-blur-2xl transition duration-500 hover:shadow-[0_34px_100px_rgba(30,64,175,0.22)] sm:rounded-[2rem] sm:p-8 xl:p-8 2xl:p-10">
               <div
                 aria-hidden="true"
                 className="pointer-events-none absolute -right-16 -top-20 h-48 w-48 rounded-full border border-blue-100/80 bg-blue-100/20"
               />
-
               <header className="relative z-10">
                 <span className="inline-flex items-center gap-2 rounded-full border border-blue-100 bg-blue-50/90 px-3 py-1.5 text-xs font-extrabold uppercase tracking-[0.1em] text-blue-600">
                   <LockKeyhole className="h-3.5 w-3.5 shrink-0" />
                   Secure workspace
                 </span>
-
-                <h2 className="mt-5 bg-gradient-to-br from-[#0b2554] via-[#173b82] to-blue-600 bg-clip-text pb-1 text-[clamp(2.2rem,10.5vw,4.2rem)] font-semibold leading-[1] tracking-[-0.06em] text-transparent sm:mt-6 sm:text-[clamp(3rem,5vw,4.4rem)]">
+                <h2 className="mt-5 bg-gradient-to-br from-[#0b2554] via-[#173b82] to-blue-600 bg-clip-text pb-1 text-[clamp(2.25rem,7.5vw,3.8rem)] font-semibold leading-[1.06] tracking-[-0.055em] text-transparent sm:mt-6">
                   Welcome back.
                 </h2>
-
                 <div className="mt-5 flex flex-wrap items-center gap-3">
                   <span
                     aria-hidden="true"
@@ -458,12 +446,10 @@ export function Login() {
                     Your creative space is ready
                   </span>
                 </div>
-
                 <p className="mt-4 max-w-md text-sm leading-6 text-slate-600 sm:mt-5 sm:text-base sm:leading-7">
                   Sign in to pick up exactly where your team left off.
                 </p>
               </header>
-
               <button
                 type="button"
                 onClick={continueWithGoogle}
@@ -486,13 +472,11 @@ export function Login() {
                   />
                 )}
               </button>
-
               <div className="my-6 flex items-center gap-3 text-xs text-slate-500 sm:my-7">
                 <span className="h-px flex-1 bg-gradient-to-r from-transparent via-slate-200 to-slate-200" />
                 <span className="shrink-0">or continue with email</span>
                 <span className="h-px flex-1 bg-gradient-to-l from-transparent via-slate-200 to-transparent" />
               </div>
-
               <form
                 onSubmit={submit}
                 noValidate
@@ -531,7 +515,6 @@ export function Login() {
                     />
                   </div>
                 </div>
-
                 <div>
                   <label
                     htmlFor="workspace-password"
@@ -575,7 +558,6 @@ export function Login() {
                     </button>
                   </div>
                 </div>
-
                 {error ? (
                   <div
                     id="login-feedback"
@@ -591,7 +573,6 @@ export function Login() {
                     <span className="min-w-0 break-words">{error}</span>
                   </div>
                 ) : null}
-
                 <div className="flex flex-col gap-1 pt-0.5 text-sm sm:flex-row sm:items-center sm:justify-between">
                   <span className="inline-flex items-center gap-1.5 text-slate-500">
                     <ShieldCheck
@@ -607,12 +588,11 @@ export function Login() {
                     Forgot password?
                   </Link>
                 </div>
-
                 <button
                   type="submit"
                   disabled={isBusy}
                   aria-busy={submitting || loading}
-                  className="login-sheen group/submit relative flex h-14 w-full items-center justify-center gap-3 overflow-hidden rounded-2xl bg-gradient-to-r from-blue-600 via-blue-500 to-cyan-500 px-5 text-base font-extrabold text-white shadow-[0_18px_38px_rgba(37,99,235,0.3)] transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_24px_48px_rgba(37,99,235,0.36)] focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-200 active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="login-sheen group/submit relative flex min-h-14 w-full items-center justify-center gap-3 overflow-hidden rounded-2xl bg-gradient-to-r from-blue-600 via-blue-500 to-cyan-500 px-5 text-base font-extrabold text-white shadow-[0_18px_38px_rgba(37,99,235,0.3)] transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_24px_48px_rgba(37,99,235,0.36)] focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-200 active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {submitting || loading ? (
                     <>
@@ -630,7 +610,6 @@ export function Login() {
                   )}
                 </button>
               </form>
-
               <div className="relative z-10 mt-6 flex items-start justify-center gap-2 text-center text-xs leading-5 text-slate-500 sm:mt-7">
                 <ShieldCheck
                   aria-hidden="true"
