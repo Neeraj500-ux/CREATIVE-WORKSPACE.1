@@ -98,6 +98,177 @@ const motionStyles = `
     display: grid; grid-template-columns: minmax(0, 1fr);
   }
   .login-page .login-layout > * { min-width: 0; }
+  .login-page {
+    background:
+      radial-gradient(circle at 5% 8%, rgba(151,196,255,.38), transparent 34%),
+      radial-gradient(circle at 93% 15%, rgba(114,221,255,.23), transparent 27%),
+      linear-gradient(145deg, #f7fbff 0%, #ebf5ff 56%, #e8f3ff 100%);
+    scrollbar-color: #b9d8ff transparent;
+  }
+  .login-page::before,
+  .login-page::after {
+    content: ''; position: fixed; z-index: -1; pointer-events: none; border-radius: 999px;
+    filter: blur(1px); opacity: .9;
+  }
+  .login-page::before {
+    width: min(62vw, 58rem); height: min(62vw, 58rem); left: -24rem; top: -23rem;
+    background: radial-gradient(circle, rgba(68, 141, 255, .3), rgba(124, 214, 255, .08) 43%, transparent 70%);
+  }
+  .login-page::after {
+    width: min(54vw, 50rem); height: min(54vw, 50rem); right: -20rem; bottom: -24rem;
+    background: radial-gradient(circle, rgba(49, 189, 235, .26), rgba(123, 164, 255, .1) 48%, transparent 70%);
+  }
+  .login-page .login-liquid-ribbon {
+    position: fixed; z-index: -1; pointer-events: none; width: 44rem; height: 17rem;
+    border: 1px solid rgba(255,255,255,.46); border-radius: 48% 52% 44% 56% / 55% 42% 58% 45%;
+    background: linear-gradient(110deg, rgba(79,139,255,.09), rgba(88,219,255,.2), rgba(255,255,255,.13));
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.46), 0 20px 70px rgba(48,128,221,.08);
+    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    transform: rotate(-18deg); animation: login-ribbon-drift 16s ease-in-out infinite;
+  }
+  .login-page .login-ribbon-one { left: -14rem; bottom: 8%; }
+  .login-page .login-ribbon-two { right: -17rem; top: 20%; opacity: .72; animation-delay: -7s; animation-direction: reverse; }
+  .login-page .login-layout { isolation: isolate; }
+  .login-page .login-brand {
+    background:
+      radial-gradient(circle at 10% 10%, rgba(255,255,255,.82), transparent 20%),
+      radial-gradient(circle at 92% 70%, rgba(104,219,255,.44), transparent 38%),
+      linear-gradient(132deg, rgba(255,255,255,.88), rgba(224,241,255,.67) 54%, rgba(197,231,255,.72));
+    border: 1px solid rgba(255,255,255,.9);
+    box-shadow: 0 30px 80px rgba(25,77,153,.16), inset 0 1px 0 rgba(255,255,255,1), inset 0 -1px 0 rgba(255,255,255,.42);
+    backdrop-filter: blur(30px) saturate(1.22);
+    -webkit-backdrop-filter: blur(30px) saturate(1.22);
+  }
+  .login-page .login-brand::before {
+    content: ''; position: absolute; pointer-events: none;
+    inset: 1px; border-radius: inherit;
+    background: linear-gradient(128deg, rgba(255,255,255,.55), transparent 32%, rgba(255,255,255,.19) 70%, transparent);
+    mask: linear-gradient(#000, transparent 65%);
+  }
+  .login-page .login-brand::after {
+    content: ''; position: absolute; pointer-events: none;
+    width: 52%; height: 45%; right: -15%; bottom: -25%; border-radius: 50%;
+    border: 1px solid rgba(255,255,255,.63);
+    box-shadow: 0 0 0 32px rgba(255,255,255,.12), 0 0 0 74px rgba(117,181,255,.08);
+  }
+  .login-page .login-hero-title { text-wrap: balance; }
+  .login-page .login-feature,
+  .login-page .login-stat,
+  .login-page .login-info {
+    border: 1px solid rgba(255,255,255,.86);
+    background: linear-gradient(145deg, rgba(255,255,255,.75), rgba(235,248,255,.5));
+    box-shadow: 0 14px 30px rgba(32,83,152,.09), inset 0 1px 0 rgba(255,255,255,.9), inset 0 -1px 0 rgba(110,181,255,.08);
+    backdrop-filter: blur(22px) saturate(1.1); -webkit-backdrop-filter: blur(22px) saturate(1.1);
+  }
+  .login-page .login-feature { position: relative; overflow: hidden; }
+  .login-page .login-feature::before {
+    content: ''; position: absolute; height: 1px; left: 16px; right: 16px; top: 0;
+    background: linear-gradient(90deg, transparent, white, transparent);
+  }
+  .login-page .login-feature:hover,
+  .login-page .login-stat:hover,
+  .login-page .login-info:hover {
+    background: rgba(255,255,255,.91);
+    box-shadow: 0 18px 38px rgba(30,90,170,.13), inset 0 1px 0 white;
+  }
+  .login-page .login-form-card {
+    border: 1px solid rgba(255,255,255,.96);
+    background:
+      radial-gradient(circle at 100% 0%, rgba(147,221,255,.26), transparent 29%),
+      radial-gradient(circle at 0% 100%, rgba(183,213,255,.2), transparent 27%),
+      linear-gradient(150deg, rgba(255,255,255,.92), rgba(255,255,255,.83) 58%, rgba(226,243,255,.82));
+    box-shadow: 0 34px 92px rgba(28,72,151,.2), 0 3px 11px rgba(24,74,139,.07), inset 0 1px 0 white, inset 0 -1px 0 rgba(255,255,255,.45);
+    backdrop-filter: blur(32px) saturate(1.24); -webkit-backdrop-filter: blur(32px) saturate(1.24);
+  }
+  .login-page .login-form-card::before {
+    content: ''; position: absolute; pointer-events: none;
+    inset-inline: 10%; top: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, #93d4ff, transparent);
+  }
+  .login-page .login-google,
+  .login-page .login-submit,
+  .login-page .login-mobile-cta {
+    position: relative; isolation: isolate; overflow: hidden;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .login-page :is(.login-google, .login-submit, .login-mobile-cta) > * {
+    position: relative; z-index: 1;
+  }
+  .login-page .login-google {
+    color: white;
+    border: 1px solid rgba(255,255,255,.45);
+    background: linear-gradient(120deg, rgba(21,87,213,.96), rgba(31,129,229,.96) 56%, rgba(16,166,207,.94));
+    box-shadow: 0 15px 31px rgba(37,99,235,.22), inset 0 1px 0 rgba(255,255,255,.36), inset 0 -1px 0 rgba(3,73,159,.24);
+  }
+  .login-page .login-google:hover {
+    color: white; border-color: rgba(255,255,255,.7); transform: translateY(-2px);
+    box-shadow: 0 21px 38px rgba(36,102,188,.25), inset 0 1px 0 rgba(255,255,255,.42);
+  }
+  .login-page .login-input {
+    background: linear-gradient(135deg, rgba(241,247,255,.88), rgba(255,255,255,.66));
+    border: 1px solid rgba(168,206,255,.63);
+    box-shadow: inset 0 1px 2px rgba(255,255,255,.9), inset 0 -1px 1px rgba(58,116,185,.035), 0 8px 19px rgba(29,78,150,.045);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  }
+  .login-page .login-input:hover { border-color: #bbd8ff; }
+  .login-page .login-input:focus {
+    border-color: #3b82f6; background: white;
+    box-shadow: 0 0 0 4px rgba(59,130,246,.13), 0 10px 25px rgba(37,99,235,.065);
+  }
+  .login-page .login-submit,
+  .login-page .login-mobile-cta {
+    color: white;
+    background: linear-gradient(110deg, #1744c6 0%, #2563eb 48%, #08a8d6 100%);
+    box-shadow: 0 18px 35px rgba(37,99,235,.29), inset 0 1px 0 rgba(255,255,255,.39), inset 0 -2px 0 rgba(8,75,173,.25);
+  }
+  .login-page .login-submit:hover:not(:disabled),
+  .login-page .login-mobile-cta:hover {
+    transform: translateY(-2px); filter: saturate(1.12);
+    box-shadow: 0 24px 48px rgba(37,99,235,.36), inset 0 1px 0 rgba(255,255,255,.43), inset 0 -2px 0 rgba(8,75,173,.25);
+  }
+  .login-page .login-submit:active:not(:disabled),
+  .login-page .login-mobile-cta:active,
+  .login-page .login-google:active:not(:disabled) { transform: translateY(0); }
+  .login-page .login-google::before,
+  .login-page .login-submit::before,
+  .login-page .login-mobile-cta::before {
+    content: ''; position: absolute; pointer-events: none; inset: 1px; border-radius: inherit;
+    background: linear-gradient(105deg, rgba(255,255,255,.28), transparent 25%, transparent 70%, rgba(255,255,255,.12));
+  }
+  .login-page .login-google-icon {
+    display: grid; height: 31px; width: 31px; place-items: center; border-radius: 10px;
+    background: rgba(255,255,255,.98); box-shadow: 0 4px 12px rgba(6,59,152,.2), inset 0 1px 0 white;
+  }
+  .login-page .login-google::after {
+    content: ''; position: absolute; inset: -40% auto -40% -35%; width: 32%; pointer-events: none;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,.3), transparent);
+    transform: skewX(-18deg); animation: login-button-glide 6.5s ease-in-out infinite 1.5s;
+  }
+  .login-page .login-security-line {
+    border-top: 1px solid rgba(147,197,253,.42);
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,.34), transparent);
+  }
+  .login-page button:disabled { transform: none !important; }
+  .login-page :is(a, button, input):focus-visible {
+    outline: 3px solid rgba(37,99,235,.46);
+    outline-offset: 3px;
+  }
+  @media (max-width: 1199px) {
+    .login-page .login-layout { max-width: 760px; }
+  }
+  @media (max-width: 639px) {
+    .login-page .login-layout { gap: 16px; padding: 12px; }
+    .login-page .login-brand { border-radius: 24px; }
+    .login-page .login-hero-title { overflow-wrap: anywhere; }
+    .login-page .login-form-card { border-radius: 24px; }
+    .login-page .login-feature { min-height: 110px; }
+  }
+  @media (max-width: 390px) {
+    .login-page .login-brand { padding-inline: 17px; }
+    .login-page .login-hero-title { font-size: 2.4rem; }
+    .login-page .login-form-card { padding-inline: 18px; }
+    .login-page .login-stat { padding-inline: 8px; }
+  }
   @media (min-width: 1200px) {
     .login-page .login-layout {
       grid-template-columns: minmax(0, 1.08fr) minmax(0, .92fr);
@@ -115,21 +286,33 @@ const motionStyles = `
     from { transform: translateX(-150%) skewX(-18deg); }
     to { transform: translateX(340%) skewX(-18deg); }
   }
+  @keyframes login-ribbon-drift {
+    0%, 100% { transform: translate3d(0, 0, 0) rotate(-18deg) scale(1); border-radius: 48% 52% 44% 56% / 55% 42% 58% 45%; }
+    50% { transform: translate3d(3rem, -1.25rem, 0) rotate(-12deg) scale(1.06); border-radius: 58% 42% 54% 46% / 43% 58% 42% 57%; }
+  }
+  @keyframes login-button-glide {
+    0%, 15% { transform: translateX(-180%) skewX(-18deg); }
+    42%, 100% { transform: translateX(620%) skewX(-18deg); }
+  }
   .login-rise { animation: login-rise .7s cubic-bezier(.2,.8,.2,1) both; }
   .login-float { animation: login-float 9s ease-in-out infinite; }
   .login-sheen::after {
     content: ''; position: absolute; inset-block: 0; left: -40%; width: 35%;
     pointer-events: none; transform: skewX(-18deg);
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,.36), transparent);
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,.4), transparent);
+    animation: login-button-glide 6.5s ease-in-out infinite 2.2s;
   }
   .login-sheen:hover::after { animation: login-sheen .9s ease-out; }
   @media (prefers-reduced-motion: reduce) {
-    .login-rise, .login-float, .login-sheen:hover::after { animation: none !important; }
+    .login-rise, .login-float, .login-liquid-ribbon, .login-sheen::after, .login-google::after { animation: none !important; }
     .login-rise { opacity: 1 !important; transform: none !important; }
     .login-page *, .login-page *::before, .login-page *::after {
       scroll-behavior: auto !important; animation-duration: .01ms !important;
       animation-iteration-count: 1 !important; transition-duration: .01ms !important;
     }
+    .login-page .login-google:hover,
+    .login-page .login-submit:hover,
+    .login-page .login-mobile-cta:hover { transform: none !important; }
   }
 `;
 const getAuthErrorMessage = (error: unknown, fallback: string) => {
@@ -229,13 +412,15 @@ export function Login() {
     }
   };
   const inputClass =
-    "h-14 w-full rounded-2xl border border-blue-100/90 bg-blue-50/75 pl-12 text-base text-slate-800 shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_8px_20px_rgba(37,99,235,0.04)] outline-none transition duration-300 placeholder:text-slate-400 hover:border-blue-200 hover:bg-blue-50 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100 disabled:cursor-not-allowed disabled:opacity-70 sm:text-base";
+    "login-input h-14 w-full rounded-2xl pl-12 text-base text-slate-800 outline-none transition duration-300 placeholder:text-slate-400 disabled:cursor-not-allowed disabled:opacity-70";
   return (
     <main
       className="login-page isolate bg-[#edf6ff] text-[#102957] selection:bg-blue-200 selection:text-blue-950"
       style={{ position: "fixed", inset: 0, zIndex: 50, width: "100vw", height: "100dvh", maxWidth: "none", margin: 0, overflowX: "hidden", overflowY: "auto" }}
     >
       <style>{motionStyles}</style>
+      <div aria-hidden="true" className="login-liquid-ribbon login-ribbon-one" />
+      <div aria-hidden="true" className="login-liquid-ribbon login-ribbon-two" />
       <div
         aria-hidden="true"
         className="login-float pointer-events-none fixed -right-36 -top-40 h-[26rem] w-[26rem] rounded-full bg-blue-300/25 blur-3xl"
@@ -252,7 +437,7 @@ export function Login() {
       />
       <div className="login-layout relative min-h-screen items-stretch gap-5 p-3 sm:gap-6 sm:p-5 xl:gap-6 xl:p-6">
         {/* Brand / intro panel */}
-        <section className="relative isolate flex min-w-0 flex-col overflow-hidden rounded-[1.65rem] border border-white/90 bg-[linear-gradient(130deg,rgba(255,255,255,.90)_0%,rgba(224,240,255,.81)_48%,rgba(202,231,255,.78)_100%)] px-5 py-7 text-[#173b82] shadow-[0_24px_65px_rgba(48,99,175,.16),inset_0_1px_0_rgba(255,255,255,.95)] backdrop-blur-2xl sm:rounded-[2rem] sm:px-8 sm:py-8 xl:min-h-[calc(100vh-3rem)] xl:px-9 xl:py-9 2xl:px-12">
+        <section className="login-brand relative isolate flex min-w-0 flex-col overflow-hidden rounded-[1.65rem] border border-white/90 bg-[linear-gradient(130deg,rgba(255,255,255,.90)_0%,rgba(224,240,255,.81)_48%,rgba(202,231,255,.78)_100%)] px-5 py-7 text-[#173b82] shadow-[0_24px_65px_rgba(48,99,175,.16),inset_0_1px_0_rgba(255,255,255,.95)] backdrop-blur-2xl sm:rounded-[2rem] sm:px-8 sm:py-8 xl:min-h-[calc(100vh-3rem)] xl:px-9 xl:py-9 2xl:px-12">
           <div aria-hidden="true" className="pointer-events-none absolute inset-x-6 top-0 h-px bg-gradient-to-r from-transparent via-white to-transparent" />
           <div aria-hidden="true" className="pointer-events-none absolute -right-24 top-1/4 h-80 w-80 rounded-full bg-cyan-200/45 blur-3xl" />
           <div
@@ -294,7 +479,7 @@ export function Login() {
               <span className="h-1.5 w-1.5 shrink-0 animate-pulse rounded-full bg-blue-500" />
               One shared space for your best work
             </span>
-            <h1 className="mt-5 max-w-3xl text-[clamp(2.55rem,7vw,4.6rem)] font-semibold leading-[1.04] tracking-[-0.055em] sm:text-[clamp(3.1rem,5vw,4.6rem)]">
+            <h1 className="login-hero-title mt-5 max-w-3xl text-[clamp(2.55rem,7vw,4.6rem)] font-semibold leading-[1.04] tracking-[-0.055em] sm:text-[clamp(3.1rem,5vw,4.6rem)]">
               Big ideas.
               <br />
               Creative minds.
@@ -308,7 +493,7 @@ export function Login() {
             </p>
             <a
               href="#signin"
-              className="mt-6 inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 to-cyan-500 px-6 text-sm font-extrabold text-white shadow-[0_14px_30px_rgba(37,99,235,0.28)] transition hover:-translate-y-0.5 focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-200 xl:hidden"
+              className="login-mobile-cta mt-6 inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 to-cyan-500 px-6 text-sm font-extrabold text-white shadow-[0_14px_30px_rgba(37,99,235,0.28)] transition hover:-translate-y-0.5 focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-200 xl:hidden"
             >
               Sign in below
               <ArrowRight aria-hidden="true" className="h-4 w-4 rotate-90" />
@@ -334,7 +519,7 @@ export function Login() {
                 ) => (
                   <div
                     key={title}
-                    className="login-rise min-w-0 rounded-2xl border border-white/90 bg-white/75 p-3.5 shadow-[0_12px_30px_rgba(37,99,235,0.08)] backdrop-blur-xl transition duration-300 hover:-translate-y-1 hover:bg-white/95 hover:shadow-[0_18px_34px_rgba(37,99,235,0.12)]"
+                    className="login-feature login-rise min-w-0 rounded-2xl border border-white/90 bg-white/75 p-3.5 shadow-[0_12px_30px_rgba(37,99,235,0.08)] backdrop-blur-xl transition duration-300 hover:-translate-y-1 hover:bg-white/95 hover:shadow-[0_18px_34px_rgba(37,99,235,0.12)]"
                     style={{ animationDelay: index * 80 + "ms" }}
                   >
                     <span
@@ -359,7 +544,7 @@ export function Login() {
               {workspaceStats.map(({ value, label, icon: Icon }) => (
                 <div
                   key={label}
-                  className="min-w-0 rounded-2xl border border-white/85 bg-white/55 px-2.5 py-3 backdrop-blur-md transition duration-300 hover:-translate-y-0.5 hover:bg-white/80 sm:px-3.5"
+                  className="login-stat min-w-0 rounded-2xl border border-white/85 bg-white/55 px-2.5 py-3 backdrop-blur-md transition duration-300 hover:-translate-y-0.5 hover:bg-white/80 sm:px-3.5"
                 >
                   <Icon className="h-3.5 w-3.5 text-blue-600" />
                   <strong className="mt-2 block text-sm font-extrabold text-[#173b82]">
@@ -373,7 +558,7 @@ export function Login() {
             </div>
           </div>
           <div className="relative z-10 flex w-full max-w-2xl flex-col gap-3 sm:flex-row sm:items-center">
-            <div className="group flex min-w-0 flex-1 items-center gap-3 rounded-2xl border border-white/95 bg-white/80 p-3.5 text-[#173b82] shadow-[0_18px_42px_rgba(37,99,235,0.1)] backdrop-blur-xl transition duration-500 hover:-translate-y-1 hover:bg-white/95">
+            <div className="login-info group flex min-w-0 flex-1 items-center gap-3 rounded-2xl border border-white/95 bg-white/80 p-3.5 text-[#173b82] shadow-[0_18px_42px_rgba(37,99,235,0.1)] backdrop-blur-xl transition duration-500 hover:-translate-y-1 hover:bg-white/95">
               <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-blue-100">
                 <CheckCircle2 className="h-5 w-5 text-blue-600" />
               </span>
@@ -388,7 +573,7 @@ export function Login() {
                 className="h-4 w-4 shrink-0 text-blue-500 transition group-hover:translate-x-1"
               />
             </div>
-            <div className="hidden items-center gap-3 rounded-2xl border border-white/80 bg-white/50 px-4 py-3 text-xs text-slate-600 backdrop-blur-md sm:flex">
+            <div className="login-info hidden items-center gap-3 rounded-2xl border border-white/80 bg-white/50 px-4 py-3 text-xs text-slate-600 backdrop-blur-md sm:flex">
               <span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-cyan-100 text-cyan-600">
                 <Zap className="h-4 w-4" />
               </span>
@@ -424,7 +609,7 @@ export function Login() {
               aria-hidden="true"
               className="pointer-events-none absolute -inset-1 rounded-[2rem] bg-gradient-to-br from-blue-300/85 via-white/90 to-cyan-300/85 opacity-80 blur-xl transition duration-700"
             />
-            <div className="relative overflow-hidden rounded-[1.8rem] border border-blue-100/90 bg-gradient-to-br from-white via-white/95 to-blue-50/90 p-5 shadow-[0_30px_90px_rgba(30,64,175,0.18)] backdrop-blur-2xl transition duration-500 hover:shadow-[0_34px_100px_rgba(30,64,175,0.22)] sm:rounded-[2rem] sm:p-8 xl:p-8 2xl:p-10">
+            <div className="login-form-card relative overflow-hidden rounded-[1.8rem] border border-blue-100/90 bg-gradient-to-br from-white via-white/95 to-blue-50/90 p-5 shadow-[0_30px_90px_rgba(30,64,175,0.18)] backdrop-blur-2xl transition duration-500 hover:shadow-[0_34px_100px_rgba(30,64,175,0.22)] sm:rounded-[2rem] sm:p-8 xl:p-8 2xl:p-10">
               <div
                 aria-hidden="true"
                 className="pointer-events-none absolute -right-16 -top-20 h-48 w-48 rounded-full border border-blue-100/80 bg-blue-100/20"
@@ -455,10 +640,16 @@ export function Login() {
                 onClick={continueWithGoogle}
                 disabled={isBusy}
                 aria-busy={googleSubmitting}
-                className="group/google relative mt-7 flex min-h-14 w-full items-center justify-center overflow-hidden rounded-2xl border border-blue-100/90 bg-white/95 px-10 text-sm font-semibold text-slate-700 shadow-[0_12px_28px_rgba(15,52,110,0.07)] backdrop-blur-xl transition duration-300 hover:-translate-y-0.5 hover:border-blue-300 hover:bg-white hover:shadow-[0_18px_36px_rgba(37,99,235,0.14)] focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-200 active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60 sm:mt-8 sm:min-h-[3.75rem] sm:text-base"
+                className="login-google group/google relative mt-7 flex min-h-14 w-full items-center justify-center overflow-hidden rounded-2xl px-10 text-sm font-semibold text-white transition duration-300 focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-200 active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60 sm:mt-8 sm:min-h-[3.75rem] sm:text-base"
               >
                 <span className="flex min-w-0 items-center justify-center gap-3 text-center">
-                  {googleSubmitting ? <Spinner /> : <GoogleIcon />}
+                  {googleSubmitting ? (
+                    <Spinner light />
+                  ) : (
+                    <span className="login-google-icon">
+                      <GoogleIcon />
+                    </span>
+                  )}
                   <span className="truncate">
                     {googleSubmitting
                       ? "Connecting to Google..."
@@ -468,7 +659,7 @@ export function Login() {
                 {!googleSubmitting && (
                   <ArrowRight
                     aria-hidden="true"
-                    className="absolute right-4 h-4 w-4 text-slate-400 transition duration-300 group-hover/google:translate-x-1 group-hover/google:text-blue-600"
+                    className="absolute right-4 h-4 w-4 text-white/75 transition duration-300 group-hover/google:translate-x-1 group-hover/google:text-white"
                   />
                 )}
               </button>
@@ -592,7 +783,7 @@ export function Login() {
                   type="submit"
                   disabled={isBusy}
                   aria-busy={submitting || loading}
-                  className="login-sheen group/submit relative flex min-h-14 w-full items-center justify-center gap-3 overflow-hidden rounded-2xl bg-gradient-to-r from-blue-600 via-blue-500 to-cyan-500 px-5 text-base font-extrabold text-white shadow-[0_18px_38px_rgba(37,99,235,0.3)] transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_24px_48px_rgba(37,99,235,0.36)] focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-200 active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="login-submit login-sheen group/submit relative flex min-h-14 w-full items-center justify-center gap-3 overflow-hidden rounded-2xl bg-gradient-to-r from-blue-600 via-blue-500 to-cyan-500 px-5 text-base font-extrabold text-white shadow-[0_18px_38px_rgba(37,99,235,0.3)] transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_24px_48px_rgba(37,99,235,0.36)] focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-200 active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {submitting || loading ? (
                     <>
@@ -610,12 +801,22 @@ export function Login() {
                   )}
                 </button>
               </form>
-              <div className="relative z-10 mt-6 flex items-start justify-center gap-2 text-center text-xs leading-5 text-slate-500 sm:mt-7">
-                <ShieldCheck
-                  aria-hidden="true"
-                  className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500"
-                />
-                <span>Your workspace access is protected and role-aware.</span>
+              <div className="login-security-line relative z-10 mt-6 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 px-2 pt-5 text-center text-xs leading-5 text-slate-500 sm:mt-7">
+                <span className="inline-flex items-center gap-1.5">
+                  <ShieldCheck
+                    aria-hidden="true"
+                    className="h-4 w-4 shrink-0 text-emerald-500"
+                  />
+                  Encrypted Firebase session
+                </span>
+                <span className="hidden h-1 w-1 rounded-full bg-blue-300 sm:block" />
+                <span className="hidden items-center gap-1.5 sm:inline-flex">
+                  <CheckCircle2
+                    aria-hidden="true"
+                    className="h-4 w-4 shrink-0 text-blue-500"
+                  />
+                  Role-aware access
+                </span>
               </div>
             </div>
           </div>
