@@ -1,85 +1,488 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Activity, ArrowRight, BarChart3, BriefcaseBusiness, CalendarClock, CheckCircle2, CheckSquare2, CircleDollarSign, Clock3, FileText, FolderKanban, Gauge, Goal, ListTodo, MoreHorizontal, Plus, ShieldAlert, Sparkles, TrendingUp, UsersRound, WalletCards } from "lucide-react";
-import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { Button, Card, Avatar, Badge, EmptyState, ProgressBar, SectionHeading, SelectInput, StatCard, useToast } from "../components/ui";
-import { formatCompactDate, formatCurrency, formatDate, formatRelativeTime, isDueToday, isOverdue, isThisWeek, roleLabels, statusTone } from "../lib/formatters";
+import {
+  Activity,
+  ArrowRight,
+  BarChart3,
+  BriefcaseBusiness,
+  CalendarClock,
+  CheckCircle2,
+  CheckSquare2,
+  CircleDollarSign,
+  Clock3,
+  FileText,
+  FolderKanban,
+  Goal,
+  ListTodo,
+  MoreHorizontal,
+  Plus,
+  ShieldAlert,
+  Sparkles,
+  TrendingUp,
+  UsersRound,
+  WalletCards,
+} from "lucide-react";
+import {
+  Area,
+  AreaChart,
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
+import {
+  Button,
+  Card,
+  Avatar,
+  Badge,
+  EmptyState,
+  ProgressBar,
+  SectionHeading,
+  SelectInput,
+  StatCard,
+  useToast,
+} from "../components/ui";
+import {
+  formatCompactDate,
+  formatRelativeTime,
+  isDueToday,
+  isOverdue,
+  isThisWeek,
+  roleLabels,
+  statusTone,
+} from "../lib/formatters";
 import { getModulePath, hasPermission } from "../lib/permissions";
+import { QuickAddModal } from "../components/QuickAddModal";
 import { useAuth } from "../services/auth";
 import { taskMetrics, useWorkspace } from "../services/workspace";
 import type { LucideIcon } from "lucide-react";
-import type { Role, Task, TaskStatus } from "../types";
+import type { QuickAddType, Role, Task, TaskStatus } from "../types";
+
+const dashboardQuickStyles = `
+.dashboard-quick{min-width:0;margin:0 0 22px;padding:19px;border:1px solid #d5e5fa;border-radius:22px;background:radial-gradient(ellipse at top left,#e1f2ffc9,transparent 65%),linear-gradient(135deg,#fffffff2,#f1f7ffdf);box-shadow:0 14px 35px #315c9310,inset 0 1px 0 #fff;backdrop-filter:blur(22px);color:#17335f}
+.dashboard-quick *{box-sizing:border-box}
+.dashboard-quick-head{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:14px}
+.dashboard-quick-head h2{margin:0;font-size:16px;font-weight:750;letter-spacing:-.025em;color:#17335f}
+.dashboard-quick-head p{margin:4px 0 0;font-size:12px;line-height:1.5;color:#667e9f}
+.dashboard-quick-badge{display:inline-flex;align-items:center;gap:6px;padding:7px 10px;border:1px solid #d9e9ff;border-radius:30px;background:#fff;color:#2563eb;font-size:11px;white-space:nowrap}
+.dashboard-quick-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:10px}
+.dashboard-quick-button{display:flex;align-items:center;gap:10px;min-width:0;padding:13px 12px;border:1px solid #dbe7f7;border-radius:14px;background:#ffffffd9;color:#27496f;text-align:left;font:inherit;cursor:pointer;transition:transform .2s,box-shadow .2s,border-color .2s}
+.dashboard-quick-button>span:first-child{display:grid;place-items:center;flex-shrink:0;width:35px;height:35px;border:1px solid #dce9fc;border-radius:11px;background:linear-gradient(140deg,#eff8ff,#e7efff);color:#2563eb}
+.dashboard-quick-button strong{display:block;font-size:12px;line-height:1.4;overflow-wrap:anywhere}
+.dashboard-quick-button small{display:block;font-size:10px;color:#7890ae;margin-top:3px;line-height:1.5}
+.dashboard-quick-button:focus-visible{outline:3px solid #9abffc;outline-offset:3px}
+@media(hover:hover){.dashboard-quick-button:hover{transform:translateY(-2px);border-color:#9ebff0;box-shadow:0 8px 18px #2563eb0e}}
+@media(max-width:640px){.dashboard-quick{padding:14px;border-radius:18px}.dashboard-quick-head{align-items:flex-start;flex-wrap:wrap}.dashboard-quick-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.dashboard-quick-button{padding:11px 9px;gap:8px}.dashboard-quick-button small{display:none}.dashboard-quick-button strong{font-size:11px}}
+@media(max-width:360px){.dashboard-quick-grid{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){.dashboard-quick-button{transition:none}.dashboard-quick-button:hover{transform:none}}
+`;
 
 const chartColors = ["#2563eb", "#38bdf8", "#8b5cf6", "#0ea5a4"];
-const taskStatuses: TaskStatus[] = ["Backlog", "In Progress", "In Review", "Completed"];
+const taskStatuses: TaskStatus[] = [
+  "Backlog",
+  "In Progress",
+  "In Review",
+  "Completed",
+];
 
-const shortGreeting = () => { const hour = new Date().getHours(); return hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening"; };
+const shortGreeting = () => {
+  const hour = new Date().getHours();
+  return hour < 12
+    ? "Good morning"
+    : hour < 18
+      ? "Good afternoon"
+      : "Good evening";
+};
 
-function getStats(role: Role, data: ReturnType<typeof useWorkspace>["data"], userId: string) {
+function getStats(
+  role: Role,
+  data: ReturnType<typeof useWorkspace>["data"],
+  userId: string,
+) {
   const tasks = data.tasks;
-  const projects = data.projects.filter((project) => project.status !== "Archived");
-  const myTasks = role === "employee" ? tasks.filter((task) => task.assigneeId === userId) : tasks;
+  const projects = data.projects.filter(
+    (project) => project.status !== "Archived",
+  );
+  const myTasks =
+    role === "employee"
+      ? tasks.filter((task) => task.assigneeId === userId)
+      : tasks;
   const completed = myTasks.filter((task) => task.status === "Completed");
-  const completion = myTasks.length ? Math.round((completed.length / myTasks.length) * 100) : 0;
-  const members = data.users.filter((person) => person.role !== "client" && person.active);
-  const pendingApprovals = data.approvals.filter((approval) => approval.status === "Pending").length;
-  const pendingRequests = data.requests.filter((request) => request.status === "Pending").length;
-  const attendanceToday = data.attendance.filter((record) => record.date === new Date().toISOString().slice(0, 10));
-  const attendancePercent = members.length ? Math.round((attendanceToday.filter((record) => record.status === "Present" || record.status === "Remote").length / members.length) * 100) : 0;
-  const activeProjects = projects.filter((project) => project.status === "Active").length;
+  const completion = myTasks.length
+    ? Math.round((completed.length / myTasks.length) * 100)
+    : 0;
+  const members = data.users.filter(
+    (person) => person.role !== "client" && person.active,
+  );
+  const pendingApprovals = data.approvals.filter(
+    (approval) => approval.status === "Pending",
+  ).length;
+  const pendingRequests = data.requests.filter(
+    (request) => request.status === "Pending",
+  ).length;
+  const attendanceToday = data.attendance.filter(
+    (record) => record.date === new Date().toISOString().slice(0, 10),
+  );
+  const attendancePercent = members.length
+    ? Math.round(
+        (attendanceToday.filter(
+          (record) => record.status === "Present" || record.status === "Remote",
+        ).length /
+          members.length) *
+          100,
+      )
+    : 0;
+  const activeProjects = projects.filter(
+    (project) => project.status === "Active",
+  ).length;
   const base = [
-    { label: "Total Clients", value: data.clients.length, note: `${data.clients.filter((client) => client.status === "Active").length} active accounts`, icon: BriefcaseBusiness, tone: "blue", module: "clients" },
-    { label: "Active Projects", value: activeProjects, note: `${projects.filter((project) => project.health === "At risk").length} need attention`, icon: FolderKanban, tone: "cyan", module: "projects" },
-    { label: "Total Team Members", value: members.length, note: `${data.departments.length} departments`, icon: UsersRound, tone: "violet", module: "people" },
-    { label: "Pending Approvals", value: pendingApprovals, note: `${pendingRequests} requests in review`, icon: ShieldAlert, tone: "amber", module: "approvals" },
-    { label: "Overdue Tasks", value: tasks.filter(isOverdue).length, note: "Across permitted scope", icon: Clock3, tone: "rose", module: "tasks" },
-    { label: "Overall Completion Rate", value: `${completion}%`, note: `${completed.length} completed tasks`, icon: TrendingUp, tone: "green", module: "reports" },
+    {
+      label: "Total Clients",
+      value: data.clients.length,
+      note: `${data.clients.filter((client) => client.status === "Active").length} active accounts`,
+      icon: BriefcaseBusiness,
+      tone: "blue",
+      module: "clients",
+    },
+    {
+      label: "Active Projects",
+      value: activeProjects,
+      note: `${projects.filter((project) => project.health === "At risk").length} need attention`,
+      icon: FolderKanban,
+      tone: "cyan",
+      module: "projects",
+    },
+    {
+      label: "Total Team Members",
+      value: members.length,
+      note: `${data.departments.length} departments`,
+      icon: UsersRound,
+      tone: "violet",
+      module: "people",
+    },
+    {
+      label: "Pending Approvals",
+      value: pendingApprovals,
+      note: `${pendingRequests} requests in review`,
+      icon: ShieldAlert,
+      tone: "amber",
+      module: "approvals",
+    },
+    {
+      label: "Overdue Tasks",
+      value: tasks.filter(isOverdue).length,
+      note: "Across permitted scope",
+      icon: Clock3,
+      tone: "rose",
+      module: "tasks",
+    },
+    {
+      label: "Overall Completion Rate",
+      value: `${completion}%`,
+      note: `${completed.length} completed tasks`,
+      icon: TrendingUp,
+      tone: "green",
+      module: "reports",
+    },
   ];
-  if (role === "manager") return [
-    { label: "Active Projects", value: activeProjects, note: `${projects.length} in assigned scope`, icon: FolderKanban, tone: "cyan", module: "projects" },
-    { label: "Assigned Team Members", value: members.length, note: `${data.teams.length} visible teams`, icon: UsersRound, tone: "violet", module: "people" },
-    { label: "Open Tasks", value: tasks.filter((task) => task.status !== "Completed").length, note: `${tasks.filter((task) => task.status === "In Progress").length} in progress`, icon: ListTodo, tone: "blue", module: "tasks" },
-    { label: "Overdue Tasks", value: tasks.filter(isOverdue).length, note: "Needs a clear next owner", icon: Clock3, tone: "rose", module: "tasks" },
-    { label: "Pending Requests / Approvals", value: pendingApprovals + pendingRequests, note: `${pendingApprovals} approvals · ${pendingRequests} requests`, icon: ShieldAlert, tone: "amber", module: "approvals" },
-    { label: "Assigned-Scope Completion", value: `${completion}%`, note: `${completed.length} completed tasks`, icon: TrendingUp, tone: "green", module: "reports" },
-  ];
-  if (role === "team_leader") return [
-    { label: "Tasks Due Today", value: tasks.filter(isDueToday).length, note: "Protect today’s focus", icon: CalendarClock, tone: "blue", module: "calendar" },
-    { label: "In-Progress Tasks", value: tasks.filter((task) => task.status === "In Progress").length, note: `${tasks.filter((task) => task.status === "In Review").length} awaiting review`, icon: ListTodo, tone: "cyan", module: "board" },
-    { label: "Overdue Tasks", value: tasks.filter(isOverdue).length, note: "Resolve or re-plan", icon: Clock3, tone: "rose", module: "tasks" },
-    { label: "Completed This Week", value: completed.filter((task) => isThisWeek(task.updatedAt.slice(0, 10))).length, note: `${completion}% of visible work`, icon: CheckCircle2, tone: "green", module: "reports" },
-    { label: "Team Attendance", value: `${attendancePercent}%`, note: `${attendanceToday.length} check-ins today`, icon: CheckSquare2, tone: "violet", module: "attendance" },
-    { label: "Active Team Projects", value: activeProjects, note: `${projects.length} assigned projects`, icon: FolderKanban, tone: "amber", module: "projects" },
-  ];
-  if (role === "employee") return [
-    { label: "My Open Tasks", value: myTasks.filter((task) => task.status !== "Completed").length, note: `${myTasks.filter((task) => task.status === "In Progress").length} in progress`, icon: ListTodo, tone: "blue", module: "tasks" },
-    { label: "Due Today", value: myTasks.filter(isDueToday).length, note: "Your next few hours", icon: CalendarClock, tone: "cyan", module: "calendar" },
-    { label: "Overdue Tasks", value: myTasks.filter(isOverdue).length, note: "Make the next step visible", icon: Clock3, tone: "rose", module: "tasks" },
-    { label: "Completed This Week", value: completed.filter((task) => isThisWeek(task.updatedAt.slice(0, 10))).length, note: `${completion}% of assigned work`, icon: CheckCircle2, tone: "green", module: "reports" },
-    { label: "Active Projects", value: activeProjects, note: `${projects.length} assigned projects`, icon: FolderKanban, tone: "violet", module: "projects" },
-    { label: "Personal Progress", value: `${completion}%`, note: `${attendanceToday.some((record) => record.userId === userId) ? "Checked in today" : "Not checked in yet"}`, icon: Sparkles, tone: "amber", module: "attendance" },
-  ];
-  if (role === "client") return [
-    { label: "Open Work Items", value: tasks.filter((task) => task.status !== "Completed").length, note: `${tasks.filter((task) => task.status === "In Review").length} in review`, icon: ListTodo, tone: "blue", module: "tasks" },
-    { label: "Due Soon", value: tasks.filter((task) => isDueToday(task) || isOverdue(task)).length, note: "Visible delivery dates", icon: CalendarClock, tone: "cyan", module: "calendar" },
-    { label: "Items Needing Attention", value: data.approvals.filter((approval) => approval.status === "Changes requested").length, note: "Feedback keeps work moving", icon: ShieldAlert, tone: "amber", module: "approvals" },
-    { label: "Completed Work", value: completed.length, note: `${completion}% of visible items`, icon: CheckCircle2, tone: "green", module: "projects" },
-    { label: "Active Projects", value: activeProjects, note: "Your active engagements", icon: FolderKanban, tone: "violet", module: "projects" },
-    { label: "Delivery Progress", value: `${projects.length ? Math.round(projects.reduce((sum, project) => sum + project.progress, 0) / projects.length) : 0}%`, note: "Across shared projects", icon: TrendingUp, tone: "rose", module: "projects" },
-  ];
+  if (role === "manager")
+    return [
+      {
+        label: "Active Projects",
+        value: activeProjects,
+        note: `${projects.length} in assigned scope`,
+        icon: FolderKanban,
+        tone: "cyan",
+        module: "projects",
+      },
+      {
+        label: "Assigned Team Members",
+        value: members.length,
+        note: `${data.teams.length} visible teams`,
+        icon: UsersRound,
+        tone: "violet",
+        module: "people",
+      },
+      {
+        label: "Open Tasks",
+        value: tasks.filter((task) => task.status !== "Completed").length,
+        note: `${tasks.filter((task) => task.status === "In Progress").length} in progress`,
+        icon: ListTodo,
+        tone: "blue",
+        module: "tasks",
+      },
+      {
+        label: "Overdue Tasks",
+        value: tasks.filter(isOverdue).length,
+        note: "Needs a clear next owner",
+        icon: Clock3,
+        tone: "rose",
+        module: "tasks",
+      },
+      {
+        label: "Pending Requests / Approvals",
+        value: pendingApprovals + pendingRequests,
+        note: `${pendingApprovals} approvals · ${pendingRequests} requests`,
+        icon: ShieldAlert,
+        tone: "amber",
+        module: "approvals",
+      },
+      {
+        label: "Assigned-Scope Completion",
+        value: `${completion}%`,
+        note: `${completed.length} completed tasks`,
+        icon: TrendingUp,
+        tone: "green",
+        module: "reports",
+      },
+    ];
+  if (role === "team_leader")
+    return [
+      {
+        label: "Tasks Due Today",
+        value: tasks.filter(isDueToday).length,
+        note: "Protect today’s focus",
+        icon: CalendarClock,
+        tone: "blue",
+        module: "calendar",
+      },
+      {
+        label: "In-Progress Tasks",
+        value: tasks.filter((task) => task.status === "In Progress").length,
+        note: `${tasks.filter((task) => task.status === "In Review").length} awaiting review`,
+        icon: ListTodo,
+        tone: "cyan",
+        module: "board",
+      },
+      {
+        label: "Overdue Tasks",
+        value: tasks.filter(isOverdue).length,
+        note: "Resolve or re-plan",
+        icon: Clock3,
+        tone: "rose",
+        module: "tasks",
+      },
+      {
+        label: "Completed This Week",
+        value: completed.filter((task) =>
+          isThisWeek(task.updatedAt.slice(0, 10)),
+        ).length,
+        note: `${completion}% of visible work`,
+        icon: CheckCircle2,
+        tone: "green",
+        module: "reports",
+      },
+      {
+        label: "Team Attendance",
+        value: `${attendancePercent}%`,
+        note: `${attendanceToday.length} check-ins today`,
+        icon: CheckSquare2,
+        tone: "violet",
+        module: "attendance",
+      },
+      {
+        label: "Active Team Projects",
+        value: activeProjects,
+        note: `${projects.length} assigned projects`,
+        icon: FolderKanban,
+        tone: "amber",
+        module: "projects",
+      },
+    ];
+  if (role === "employee")
+    return [
+      {
+        label: "My Open Tasks",
+        value: myTasks.filter((task) => task.status !== "Completed").length,
+        note: `${myTasks.filter((task) => task.status === "In Progress").length} in progress`,
+        icon: ListTodo,
+        tone: "blue",
+        module: "tasks",
+      },
+      {
+        label: "Due Today",
+        value: myTasks.filter(isDueToday).length,
+        note: "Your next few hours",
+        icon: CalendarClock,
+        tone: "cyan",
+        module: "calendar",
+      },
+      {
+        label: "Overdue Tasks",
+        value: myTasks.filter(isOverdue).length,
+        note: "Make the next step visible",
+        icon: Clock3,
+        tone: "rose",
+        module: "tasks",
+      },
+      {
+        label: "Completed This Week",
+        value: completed.filter((task) =>
+          isThisWeek(task.updatedAt.slice(0, 10)),
+        ).length,
+        note: `${completion}% of assigned work`,
+        icon: CheckCircle2,
+        tone: "green",
+        module: "reports",
+      },
+      {
+        label: "Active Projects",
+        value: activeProjects,
+        note: `${projects.length} assigned projects`,
+        icon: FolderKanban,
+        tone: "violet",
+        module: "projects",
+      },
+      {
+        label: "Personal Progress",
+        value: `${completion}%`,
+        note: `${attendanceToday.some((record) => record.userId === userId) ? "Checked in today" : "Not checked in yet"}`,
+        icon: Sparkles,
+        tone: "amber",
+        module: "attendance",
+      },
+    ];
+  if (role === "client")
+    return [
+      {
+        label: "Open Work Items",
+        value: tasks.filter((task) => task.status !== "Completed").length,
+        note: `${tasks.filter((task) => task.status === "In Review").length} in review`,
+        icon: ListTodo,
+        tone: "blue",
+        module: "tasks",
+      },
+      {
+        label: "Due Soon",
+        value: tasks.filter((task) => isDueToday(task) || isOverdue(task))
+          .length,
+        note: "Visible delivery dates",
+        icon: CalendarClock,
+        tone: "cyan",
+        module: "calendar",
+      },
+      {
+        label: "Items Needing Attention",
+        value: data.approvals.filter(
+          (approval) => approval.status === "Changes requested",
+        ).length,
+        note: "Feedback keeps work moving",
+        icon: ShieldAlert,
+        tone: "amber",
+        module: "approvals",
+      },
+      {
+        label: "Completed Work",
+        value: completed.length,
+        note: `${completion}% of visible items`,
+        icon: CheckCircle2,
+        tone: "green",
+        module: "projects",
+      },
+      {
+        label: "Active Projects",
+        value: activeProjects,
+        note: "Your active engagements",
+        icon: FolderKanban,
+        tone: "violet",
+        module: "projects",
+      },
+      {
+        label: "Delivery Progress",
+        value: `${projects.length ? Math.round(projects.reduce((sum, project) => sum + project.progress, 0) / projects.length) : 0}%`,
+        note: "Across shared projects",
+        icon: TrendingUp,
+        tone: "rose",
+        module: "projects",
+      },
+    ];
   return base;
 }
 
-function PageIntro({ role, userName, mode, onQuickAdd }: { role: Role; userName: string; mode: string; onQuickAdd: () => void }) {
+function PageIntro({
+  role,
+  userName,
+  mode,
+  onQuickAdd,
+}: {
+  role: Role;
+  userName: string;
+  mode: string;
+  onQuickAdd: () => void;
+}) {
   const copy: Record<Role, { title: string; description: string }> = {
-    director: { title: "Director Dashboard", description: "See the health of the whole studio, then move the right work forward." },
-    manager: { title: "Manager Dashboard", description: "Keep your people, projects and client commitments in a clear operating rhythm." },
-    team_leader: { title: "Team Lead Dashboard", description: "Turn today’s priorities into steady, visible progress for your team." },
-    employee: { title: "My Workspace", description: "A focused view of what needs your attention today and what comes next." },
-    client: { title: "Client Portal", description: "Follow shared project progress, reviews and the next milestone in one place." },
+    director: {
+      title: "Director Dashboard",
+      description:
+        "See the health of the whole studio, then move the right work forward.",
+    },
+    manager: {
+      title: "Manager Dashboard",
+      description:
+        "Keep your people, projects and client commitments in a clear operating rhythm.",
+    },
+    team_leader: {
+      title: "Team Lead Dashboard",
+      description:
+        "Turn today’s priorities into steady, visible progress for your team.",
+    },
+    employee: {
+      title: "My Workspace",
+      description:
+        "A focused view of what needs your attention today and what comes next.",
+    },
+    client: {
+      title: "Client Portal",
+      description:
+        "Follow shared project progress, reviews and the next milestone in one place.",
+    },
   };
   const current = copy[role];
-  return <div className="page-intro"><div><div className="breadcrumb"><span>Workspace</span><span>/</span><strong>{roleLabels[role]}</strong></div><div className="intro-title-row"><div><span className="eyebrow">{shortGreeting()}, {userName.split(" ")[0]}</span><h1>{current.title}</h1><p>{current.description}</p></div><Badge tone={mode === "firebase" ? "success" : "blue"} dot>{mode === "firebase" ? "Live Firebase data" : "Local demo data"}</Badge></div></div><div className="intro-actions"><Button variant="secondary" icon={BarChart3} onClick={() => document.getElementById("dashboard-analytics")?.scrollIntoView({ behavior: "smooth", block: "start" })}>View insights</Button><Button icon={Plus} onClick={onQuickAdd}>Quick add</Button></div></div>;
+  return (
+    <div className="page-intro">
+      <div>
+        <div className="breadcrumb">
+          <span>Workspace</span>
+          <span>/</span>
+          <strong>{roleLabels[role]}</strong>
+        </div>
+        <div className="intro-title-row">
+          <div>
+            <span className="eyebrow">
+              {shortGreeting()}, {userName.split(" ")[0]}
+            </span>
+            <h1>{current.title}</h1>
+            <p>{current.description}</p>
+          </div>
+          <Badge tone={mode === "firebase" ? "success" : "blue"} dot>
+            {mode === "firebase" ? "Live Firebase data" : "Local demo data"}
+          </Badge>
+        </div>
+      </div>
+      <div className="intro-actions">
+        <Button
+          variant="secondary"
+          icon={BarChart3}
+          onClick={() =>
+            document
+              .getElementById("dashboard-analytics")
+              ?.scrollIntoView({ behavior: "smooth", block: "start" })
+          }
+        >
+          View insights
+        </Button>
+        <Button icon={Plus} onClick={onQuickAdd}>
+          Quick add
+        </Button>
+      </div>
+    </div>
+  );
 }
 
 export function RoleDashboard() {
@@ -87,25 +490,782 @@ export function RoleDashboard() {
   const { data, mode, loading, error, updateTask } = useWorkspace();
   const navigate = useNavigate();
   const { notify } = useToast();
-  const chartData = useMemo(() => Array.from({ length: 6 }, (_, index) => { const date = new Date(); date.setDate(date.getDate() - (5 - index)); const key = date.toISOString().slice(0, 10); return { day: date.toLocaleDateString("en-IN", { weekday: "short" }), completed: data.tasks.filter((task) => task.status === "Completed" && task.updatedAt.slice(0, 10) === key).length, created: data.tasks.filter((task) => task.createdAt.slice(0, 10) === key).length }; }), [data.tasks]);
+  const [quickAdd, setQuickAdd] = useState<{
+    type?: QuickAddType;
+    role?: "employee" | "team_leader" | "manager";
+  } | null>(null);
+  const chartData = useMemo(
+    () =>
+      Array.from({ length: 6 }, (_, index) => {
+        const date = new Date();
+        date.setDate(date.getDate() - (5 - index));
+        const key = date.toISOString().slice(0, 10);
+        return {
+          day: date.toLocaleDateString("en-IN", { weekday: "short" }),
+          completed: data.tasks.filter(
+            (task) =>
+              task.status === "Completed" &&
+              task.updatedAt.slice(0, 10) === key,
+          ).length,
+          created: data.tasks.filter(
+            (task) => task.createdAt.slice(0, 10) === key,
+          ).length,
+        };
+      }),
+    [data.tasks],
+  );
 
   if (!user) return null;
-  if (loading) return <div className="dashboard-loading"><div className="loading-bar" /><div className="loading-bar loading-bar-short" /></div>;
+  if (loading)
+    return (
+      <div className="dashboard-loading">
+        <div className="loading-bar" />
+        <div className="loading-bar loading-bar-short" />
+      </div>
+    );
   const stats = getStats(user.role, data, user.id);
   const metrics = taskMetrics(data.tasks);
-  const visibleProjects = data.projects.filter((project) => project.status !== "Archived").slice(0, 5);
-  const focusTasks = [...data.tasks].filter((task) => task.status !== "Completed").sort((a, b) => Number(isOverdue(b)) - Number(isOverdue(a)) || new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime()).slice(0, 6);
-  const teamPerformance = data.users.filter((candidate) => candidate.role !== "client").map((candidate) => { const tasks = data.tasks.filter((task) => task.assigneeId === candidate.id); return { name: candidate.name.split(" ")[0], completed: tasks.filter((task) => task.status === "Completed").length, open: tasks.filter((task) => task.status !== "Completed").length }; }).filter((person) => person.completed || person.open);
-  const taskDistribution = taskStatuses.map((status) => ({ name: status, value: data.tasks.filter((task) => task.status === status).length })).filter((item) => item.value);
+  const visibleProjects = data.projects
+    .filter((project) => project.status !== "Archived")
+    .slice(0, 5);
+  const focusTasks = [...data.tasks]
+    .filter((task) => task.status !== "Completed")
+    .sort(
+      (a, b) =>
+        Number(isOverdue(b)) - Number(isOverdue(a)) ||
+        new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime(),
+    )
+    .slice(0, 6);
+  const teamPerformance = data.users
+    .filter((candidate) => candidate.role !== "client")
+    .map((candidate) => {
+      const tasks = data.tasks.filter(
+        (task) => task.assigneeId === candidate.id,
+      );
+      return {
+        name: candidate.name.split(" ")[0],
+        completed: tasks.filter((task) => task.status === "Completed").length,
+        open: tasks.filter((task) => task.status !== "Completed").length,
+      };
+    })
+    .filter((person) => person.completed || person.open);
+  const taskDistribution = taskStatuses
+    .map((status) => ({
+      name: status,
+      value: data.tasks.filter((task) => task.status === status).length,
+    }))
+    .filter((item) => item.value);
   const activity = data.activities.slice(0, 6);
-  const activityIcons: Record<string, LucideIcon> = { Project: FolderKanban, Task: CheckSquare2, Client: BriefcaseBusiness, File: FileText, Approval: ShieldAlert, People: UsersRound, Finance: WalletCards, Attendance: CheckSquare2, Goal };
+  const activityIcons: Record<string, LucideIcon> = {
+    Project: FolderKanban,
+    Task: CheckSquare2,
+    Client: BriefcaseBusiness,
+    File: FileText,
+    Approval: ShieldAlert,
+    People: UsersRound,
+    Finance: WalletCards,
+    Attendance: CheckSquare2,
+    Goal,
+  };
   const clientHealth = data.clients.slice(0, 4);
+
+  const quickActions: {
+    key: string;
+    title: string;
+    hint: string;
+    type: QuickAddType;
+    role?: "employee" | "team_leader" | "manager";
+    icon: LucideIcon;
+    visible: boolean;
+  }[] = [
+    {
+      key: "employee",
+      title: "Add employee",
+      hint: "Team & reporting lead",
+      type: "user",
+      role: "employee",
+      icon: UsersRound,
+      visible:
+        hasPermission(user, "people:write") &&
+        ["director", "manager", "team_leader"].includes(user.role),
+    },
+    {
+      key: "team_leader",
+      title: "Add team lead",
+      hint: "Team & manager",
+      type: "user",
+      role: "team_leader",
+      icon: UsersRound,
+      visible:
+        hasPermission(user, "people:write") &&
+        ["director", "manager"].includes(user.role),
+    },
+    {
+      key: "manager",
+      title: "Add manager",
+      hint: "Department & ownership",
+      type: "user",
+      role: "manager",
+      icon: BriefcaseBusiness,
+      visible: hasPermission(user, "people:write") && user.role === "director",
+    },
+    {
+      key: "client",
+      title: "Add client",
+      hint: "Account & billing",
+      type: "client",
+      icon: BriefcaseBusiness,
+      visible: hasPermission(user, "clients:write"),
+    },
+    {
+      key: "project",
+      title: "Create project",
+      hint: "Plan the next delivery",
+      type: "project",
+      icon: FolderKanban,
+      visible: hasPermission(user, "projects:write"),
+    },
+    {
+      key: "task",
+      title: "Create task",
+      hint: "Assign the next action",
+      type: "task",
+      icon: CheckSquare2,
+      visible: hasPermission(user, "tasks:write"),
+    },
+    {
+      key: "approval",
+      title: "Request approval",
+      hint: "Keep reviews moving",
+      type: "approval",
+      icon: ShieldAlert,
+      visible: hasPermission(user, "approvals:write"),
+    },
+    {
+      key: "finance",
+      title: "Finance record",
+      hint: "Budget, invoice & payment",
+      type: "finance",
+      icon: CircleDollarSign,
+      visible: hasPermission(user, "finance:write"),
+    },
+    {
+      key: "goal",
+      title: "Create goal",
+      hint: "Set a measurable target",
+      type: "goal",
+      icon: Goal,
+      visible: ["director", "manager"].includes(user.role),
+    },
+  ];
+  const visibleQuickActions = quickActions.filter((action) => action.visible);
+  const quickActionBar = visibleQuickActions.length ? (
+    <section className="dashboard-quick" aria-label="Create workspace records">
+      <div className="dashboard-quick-head">
+        <div>
+          <h2>Your workspace, one action away</h2>
+          <p>Create people, plan work and keep progress moving.</p>
+        </div>
+        <span className="dashboard-quick-badge">
+          <Sparkles size={13} aria-hidden="true" />
+          {visibleQuickActions.length} quick actions
+        </span>
+      </div>
+      <div className="dashboard-quick-grid">
+        {visibleQuickActions.map((action) => {
+          const Icon = action.icon;
+          return (
+            <button
+              type="button"
+              className="dashboard-quick-button"
+              key={action.key}
+              onClick={() =>
+                setQuickAdd({ type: action.type, role: action.role })
+              }
+            >
+              <span>
+                <Icon size={17} aria-hidden="true" />
+              </span>
+              <span>
+                <strong>{action.title}</strong>
+                <small>{action.hint}</small>
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    </section>
+  ) : null;
 
   const changeTask = async (task: Task, status: TaskStatus) => {
     if (task.status === status) return;
-    try { await updateTask(task.id, { status }); notify(`Task moved to ${status}.`, "success"); }
-    catch (taskError) { notify(taskError instanceof Error ? taskError.message : "Task update failed.", "error"); }
+    try {
+      await updateTask(task.id, { status });
+      notify(`Task moved to ${status}.`, "success");
+    } catch (taskError) {
+      notify(
+        taskError instanceof Error ? taskError.message : "Task update failed.",
+        "error",
+      );
+    }
   };
 
-  return <div className="dashboard-page"><PageIntro role={user.role} userName={user.name} mode={mode} onQuickAdd={() => document.querySelector<HTMLButtonElement>(".floating-add")?.click()} />{error ? <div className="form-alert form-alert-error dashboard-alert">{error}</div> : null}<section className="kpi-grid" aria-label="Live workspace metrics">{stats.map((stat) => <StatCard key={stat.label} label={stat.label} value={stat.value} note={stat.note} icon={stat.icon} tone={stat.tone} onClick={() => navigate(getModulePath(user, stat.module))} />)}</section><div className="dashboard-grid dashboard-grid-top"><Card className="focus-card"><SectionHeading eyebrow={user.role === "employee" ? "Your focus" : "Execution pulse"} title={user.role === "employee" ? "Today’s priorities" : "Work that needs a decision"} description={user.role === "employee" ? "Keep the next action small and visible." : "A quick view of the most time-sensitive work in your scope."} action={<Button variant="ghost" size="sm" onClick={() => navigate(getModulePath(user, "tasks"))}>All tasks <ArrowRight size={14} /></Button>} />{focusTasks.length ? <div className="focus-list">{focusTasks.map((task) => <div className="focus-row" key={task.id}><span className={`priority-line priority-${statusTone(task.priority)}`} /><div className="focus-row-main"><strong>{task.title}</strong><span><span>{data.projects.find((project) => project.id === task.projectId)?.name ?? "No project"}</span><span>·</span><span className={isOverdue(task) ? "text-danger" : ""}>{isOverdue(task) ? "Overdue" : `Due ${formatCompactDate(task.dueDate)}`}</span></span></div><SelectInput aria-label={`Change status for ${task.title}`} value={task.status} onChange={(event) => void changeTask(task, event.target.value as TaskStatus)}><>{taskStatuses.map((status) => <option key={status}>{status}</option>)}</></SelectInput></div>)}</div> : <EmptyState icon={CheckCircle2} title="All clear for now" description="No open tasks are waiting in this scope." />}</Card><Card className="project-pulse-card"><SectionHeading eyebrow="Portfolio" title="Project health" description="The projects that shape this week." action={<Button variant="ghost" size="sm" onClick={() => navigate(getModulePath(user, "projects"))}>View all <ArrowRight size={14} /></Button>} />{visibleProjects.length ? <div className="project-mini-list">{visibleProjects.map((project) => <div className="project-mini" key={project.id}><div className="project-mini-top"><span className="project-avatar"><FolderKanban size={16} /></span><div><strong>{project.name}</strong><span>{data.clients.find((client) => client.id === project.clientId)?.company ?? "Internal"}</span></div><Badge tone={statusTone(project.health)} dot>{project.health}</Badge></div><div className="project-mini-meta"><ProgressBar value={project.progress} label={`${project.progress}%`} tone={project.health === "At risk" ? "amber" : project.health === "Delayed" ? "rose" : "blue"} /><span>Due {formatCompactDate(project.dueDate)}</span></div></div>)}</div> : <EmptyState icon={FolderKanban} title="No projects yet" description="Projects assigned to this role will appear here." />}</Card></div><section className="client-summary-section"><SectionHeading eyebrow="Client pulse" title={user.role === "client" ? "Your engagement" : "Accounts that deserve context"} description="A concise signal across current client relationships." action={<Button variant="secondary" size="sm" onClick={() => navigate(getModulePath(user, user.role === "client" ? "projects" : "clients"))}>Open workspace <ArrowRight size={14} /></Button>} /><div className="client-pulse-grid">{clientHealth.length ? clientHealth.map((client) => <Card className="client-pulse-card" key={client.id}><div className="client-pulse-top"><Avatar name={client.company} size="md" tone={client.status === "At risk" ? "rose" : "blue"} /><div><strong>{client.company}</strong><span>{client.name} · {client.industry}</span></div><MoreHorizontal size={17} /></div><div className="client-pulse-stats"><span><small>Projects</small><strong>{client.projectIds.length}</strong></span><span><small>Open work</small><strong>{data.tasks.filter((task) => task.clientId === client.id && task.status !== "Completed").length}</strong></span><span><small>Health</small><Badge tone={statusTone(client.status)}>{client.status}</Badge></span></div>{client.attentionRequired ? <div className="attention-note"><ShieldAlert size={14} /> Needs a follow-up</div> : <div className="attention-note attention-good"><CheckCircle2 size={14} /> Relationship is steady</div>}</Card>) : <Card><EmptyState icon={BriefcaseBusiness} title="No client signal yet" description="Client-linked records will appear here when available." /></Card>}</div></section><section id="dashboard-analytics" className="analytics-section"><SectionHeading eyebrow="Insights" title="See the shape of the work" description="Calculated from the permitted workspace records, not placeholder numbers." /><div className="analytics-grid"><Card className="chart-card chart-wide"><div className="chart-card-head"><div><h3>Momentum over the last six days</h3><p>Created vs completed tasks</p></div><span className="chart-legend"><i className="legend-blue" /> Completed <i className="legend-cyan" /> Created</span></div><div className="chart-wrap"><ResponsiveContainer width="100%" height="100%"><AreaChart data={chartData} margin={{ top: 8, right: 6, left: -24, bottom: 0 }}><defs><linearGradient id="completedGradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#2563eb" stopOpacity={0.3} /><stop offset="100%" stopColor="#2563eb" stopOpacity={0} /></linearGradient><linearGradient id="createdGradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#38bdf8" stopOpacity={0.22} /><stop offset="100%" stopColor="#38bdf8" stopOpacity={0} /></linearGradient></defs><CartesianGrid strokeDasharray="4 4" vertical={false} stroke="var(--line)" /><XAxis dataKey="day" tickLine={false} axisLine={false} tick={{ fill: "var(--muted)", fontSize: 11 }} /><YAxis allowDecimals={false} tickLine={false} axisLine={false} tick={{ fill: "var(--muted)", fontSize: 11 }} /><Tooltip contentStyle={{ background: "var(--panel-strong)", border: "1px solid var(--line-strong)", borderRadius: 12, color: "var(--text)", fontSize: 12 }} /><Area type="monotone" dataKey="completed" stroke="#2563eb" strokeWidth={2.5} fill="url(#completedGradient)" /><Area type="monotone" dataKey="created" stroke="#38bdf8" strokeWidth={2} fill="url(#createdGradient)" /></AreaChart></ResponsiveContainer></div></Card><Card className="chart-card"><div className="chart-card-head"><div><h3>Task status</h3><p>{metrics.total} visible tasks</p></div><span className="chart-total">{metrics.completed}<small>done</small></span></div><div className="donut-wrap">{taskDistribution.length ? <><ResponsiveContainer width="58%" height="100%"><PieChart><Pie data={taskDistribution} dataKey="value" nameKey="name" innerRadius={48} outerRadius={70} paddingAngle={4} stroke="none">{taskDistribution.map((entry, index) => <Cell key={entry.name} fill={chartColors[index % chartColors.length]} />)}</Pie><Tooltip contentStyle={{ background: "var(--panel-strong)", border: "1px solid var(--line-strong)", borderRadius: 12, color: "var(--text)", fontSize: 12 }} /></PieChart></ResponsiveContainer><div className="donut-legend">{taskDistribution.map((entry, index) => <span key={entry.name}><i style={{ background: chartColors[index % chartColors.length] }} />{entry.name}<strong>{entry.value}</strong></span>)}</div></> : <EmptyState icon={ListTodo} title="No task data" description="Create a task to see distribution." />}</div></Card><Card className="chart-card chart-wide"><div className="chart-card-head"><div><h3>Team performance</h3><p>Open and completed work by teammate</p></div><Button variant="ghost" size="sm" onClick={() => navigate(getModulePath(user, "workload"))}>View workload <ArrowRight size={14} /></Button></div><div className="bar-chart-wrap">{teamPerformance.length ? <ResponsiveContainer width="100%" height="100%"><BarChart data={teamPerformance} barGap={5} margin={{ top: 8, right: 6, left: -24, bottom: 0 }}><CartesianGrid strokeDasharray="4 4" vertical={false} stroke="var(--line)" /><XAxis dataKey="name" tickLine={false} axisLine={false} tick={{ fill: "var(--muted)", fontSize: 11 }} /><YAxis allowDecimals={false} tickLine={false} axisLine={false} tick={{ fill: "var(--muted)", fontSize: 11 }} /><Tooltip contentStyle={{ background: "var(--panel-strong)", border: "1px solid var(--line-strong)", borderRadius: 12, color: "var(--text)", fontSize: 12 }} /><Bar dataKey="completed" name="Completed" fill="#2563eb" radius={[5, 5, 0, 0]} /><Bar dataKey="open" name="Open" fill="#bae6fd" radius={[5, 5, 0, 0]} /></BarChart></ResponsiveContainer> : <EmptyState icon={UsersRound} title="No team activity" description="Assigned work will create a performance view." />}</div></Card></div></section><div className="dashboard-grid dashboard-grid-bottom"><Card><SectionHeading eyebrow="Activity" title="What changed recently" action={<Button variant="ghost" size="sm" onClick={() => navigate(getModulePath(user, "activity"))}>Full activity <ArrowRight size={14} /></Button>} />{activity.length ? <div className="activity-list">{activity.map((item) => { const Icon = activityIcons[item.entityType] ?? Activity; return <div className="activity-row" key={item.id}><span className="activity-icon"><Icon size={15} /></span><div><p><strong>{item.actorName}</strong> {item.action}</p><small>{item.entityType} · {formatRelativeTime(item.createdAt)}</small></div></div>; })}</div> : <EmptyState icon={Activity} title="No activity yet" description="Workspace changes will appear here." />}</Card><Card className="next-card"><div className="next-card-glow" /><span className="next-icon"><Goal size={18} /></span><div className="eyebrow">A small ritual</div><h3>End the day with a clean handoff.</h3><p>Move unfinished work to a clear status, add one sentence of context and give tomorrow a softer start.</p><Button variant="secondary" onClick={() => navigate(getModulePath(user, "tasks"))}>Review my tasks <ArrowRight size={15} /></Button></Card></div></div>;
+  return (
+    <div className="dashboard-page">
+      <style>{dashboardQuickStyles}</style>
+      <PageIntro
+        role={user.role}
+        userName={user.name}
+        mode={mode}
+        onQuickAdd={() => setQuickAdd({})}
+      />
+      {quickActionBar}
+      {error ? (
+        <div className="form-alert form-alert-error dashboard-alert">
+          {error}
+        </div>
+      ) : null}
+      <section className="kpi-grid" aria-label="Live workspace metrics">
+        {stats.map((stat) => (
+          <StatCard
+            key={stat.label}
+            label={stat.label}
+            value={stat.value}
+            note={stat.note}
+            icon={stat.icon}
+            tone={stat.tone}
+            onClick={() => navigate(getModulePath(user, stat.module))}
+          />
+        ))}
+      </section>
+      <div className="dashboard-grid dashboard-grid-top">
+        <Card className="focus-card">
+          <SectionHeading
+            eyebrow={
+              user.role === "employee" ? "Your focus" : "Execution pulse"
+            }
+            title={
+              user.role === "employee"
+                ? "Today’s priorities"
+                : "Work that needs a decision"
+            }
+            description={
+              user.role === "employee"
+                ? "Keep the next action small and visible."
+                : "A quick view of the most time-sensitive work in your scope."
+            }
+            action={
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate(getModulePath(user, "tasks"))}
+              >
+                All tasks <ArrowRight size={14} />
+              </Button>
+            }
+          />
+          {focusTasks.length ? (
+            <div className="focus-list">
+              {focusTasks.map((task) => (
+                <div className="focus-row" key={task.id}>
+                  <span
+                    className={`priority-line priority-${statusTone(task.priority)}`}
+                  />
+                  <div className="focus-row-main">
+                    <strong>{task.title}</strong>
+                    <span>
+                      <span>
+                        {data.projects.find(
+                          (project) => project.id === task.projectId,
+                        )?.name ?? "No project"}
+                      </span>
+                      <span>·</span>
+                      <span className={isOverdue(task) ? "text-danger" : ""}>
+                        {isOverdue(task)
+                          ? "Overdue"
+                          : `Due ${formatCompactDate(task.dueDate)}`}
+                      </span>
+                    </span>
+                  </div>
+                  <SelectInput
+                    aria-label={`Change status for ${task.title}`}
+                    value={task.status}
+                    onChange={(event) =>
+                      void changeTask(task, event.target.value as TaskStatus)
+                    }
+                  >
+                    <>
+                      {taskStatuses.map((status) => (
+                        <option key={status}>{status}</option>
+                      ))}
+                    </>
+                  </SelectInput>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <EmptyState
+              icon={CheckCircle2}
+              title="All clear for now"
+              description="No open tasks are waiting in this scope."
+            />
+          )}
+        </Card>
+        <Card className="project-pulse-card">
+          <SectionHeading
+            eyebrow="Portfolio"
+            title="Project health"
+            description="The projects that shape this week."
+            action={
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate(getModulePath(user, "projects"))}
+              >
+                View all <ArrowRight size={14} />
+              </Button>
+            }
+          />
+          {visibleProjects.length ? (
+            <div className="project-mini-list">
+              {visibleProjects.map((project) => (
+                <div className="project-mini" key={project.id}>
+                  <div className="project-mini-top">
+                    <span className="project-avatar">
+                      <FolderKanban size={16} />
+                    </span>
+                    <div>
+                      <strong>{project.name}</strong>
+                      <span>
+                        {data.clients.find(
+                          (client) => client.id === project.clientId,
+                        )?.company ?? "Internal"}
+                      </span>
+                    </div>
+                    <Badge tone={statusTone(project.health)} dot>
+                      {project.health}
+                    </Badge>
+                  </div>
+                  <div className="project-mini-meta">
+                    <ProgressBar
+                      value={project.progress}
+                      label={`${project.progress}%`}
+                      tone={
+                        project.health === "At risk"
+                          ? "amber"
+                          : project.health === "Delayed"
+                            ? "rose"
+                            : "blue"
+                      }
+                    />
+                    <span>Due {formatCompactDate(project.dueDate)}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <EmptyState
+              icon={FolderKanban}
+              title="No projects yet"
+              description="Projects assigned to this role will appear here."
+            />
+          )}
+        </Card>
+      </div>
+      <section className="client-summary-section">
+        <SectionHeading
+          eyebrow="Client pulse"
+          title={
+            user.role === "client"
+              ? "Your engagement"
+              : "Accounts that deserve context"
+          }
+          description="A concise signal across current client relationships."
+          action={
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() =>
+                navigate(
+                  getModulePath(
+                    user,
+                    user.role === "client" ? "projects" : "clients",
+                  ),
+                )
+              }
+            >
+              Open workspace <ArrowRight size={14} />
+            </Button>
+          }
+        />
+        <div className="client-pulse-grid">
+          {clientHealth.length ? (
+            clientHealth.map((client) => (
+              <Card className="client-pulse-card" key={client.id}>
+                <div className="client-pulse-top">
+                  <Avatar
+                    name={client.company}
+                    size="md"
+                    tone={client.status === "At risk" ? "rose" : "blue"}
+                  />
+                  <div>
+                    <strong>{client.company}</strong>
+                    <span>
+                      {client.name} · {client.industry}
+                    </span>
+                  </div>
+                  <MoreHorizontal size={17} />
+                </div>
+                <div className="client-pulse-stats">
+                  <span>
+                    <small>Projects</small>
+                    <strong>{client.projectIds.length}</strong>
+                  </span>
+                  <span>
+                    <small>Open work</small>
+                    <strong>
+                      {
+                        data.tasks.filter(
+                          (task) =>
+                            task.clientId === client.id &&
+                            task.status !== "Completed",
+                        ).length
+                      }
+                    </strong>
+                  </span>
+                  <span>
+                    <small>Health</small>
+                    <Badge tone={statusTone(client.status)}>
+                      {client.status}
+                    </Badge>
+                  </span>
+                </div>
+                {client.attentionRequired ? (
+                  <div className="attention-note">
+                    <ShieldAlert size={14} /> Needs a follow-up
+                  </div>
+                ) : (
+                  <div className="attention-note attention-good">
+                    <CheckCircle2 size={14} /> Relationship is steady
+                  </div>
+                )}
+              </Card>
+            ))
+          ) : (
+            <Card>
+              <EmptyState
+                icon={BriefcaseBusiness}
+                title="No client signal yet"
+                description="Client-linked records will appear here when available."
+              />
+            </Card>
+          )}
+        </div>
+      </section>
+      <section id="dashboard-analytics" className="analytics-section">
+        <SectionHeading
+          eyebrow="Insights"
+          title="See the shape of the work"
+          description="Calculated from the permitted workspace records, not placeholder numbers."
+        />
+        <div className="analytics-grid">
+          <Card className="chart-card chart-wide">
+            <div className="chart-card-head">
+              <div>
+                <h3>Momentum over the last six days</h3>
+                <p>Created vs completed tasks</p>
+              </div>
+              <span className="chart-legend">
+                <i className="legend-blue" /> Completed{" "}
+                <i className="legend-cyan" /> Created
+              </span>
+            </div>
+            <div className="chart-wrap">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart
+                  data={chartData}
+                  margin={{ top: 8, right: 6, left: -24, bottom: 0 }}
+                >
+                  <defs>
+                    <linearGradient
+                      id="completedGradient"
+                      x1="0"
+                      y1="0"
+                      x2="0"
+                      y2="1"
+                    >
+                      <stop offset="0%" stopColor="#2563eb" stopOpacity={0.3} />
+                      <stop offset="100%" stopColor="#2563eb" stopOpacity={0} />
+                    </linearGradient>
+                    <linearGradient
+                      id="createdGradient"
+                      x1="0"
+                      y1="0"
+                      x2="0"
+                      y2="1"
+                    >
+                      <stop
+                        offset="0%"
+                        stopColor="#38bdf8"
+                        stopOpacity={0.22}
+                      />
+                      <stop offset="100%" stopColor="#38bdf8" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid
+                    strokeDasharray="4 4"
+                    vertical={false}
+                    stroke="var(--line)"
+                  />
+                  <XAxis
+                    dataKey="day"
+                    tickLine={false}
+                    axisLine={false}
+                    tick={{ fill: "var(--muted)", fontSize: 11 }}
+                  />
+                  <YAxis
+                    allowDecimals={false}
+                    tickLine={false}
+                    axisLine={false}
+                    tick={{ fill: "var(--muted)", fontSize: 11 }}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      background: "var(--panel-strong)",
+                      border: "1px solid var(--line-strong)",
+                      borderRadius: 12,
+                      color: "var(--text)",
+                      fontSize: 12,
+                    }}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="completed"
+                    stroke="#2563eb"
+                    strokeWidth={2.5}
+                    fill="url(#completedGradient)"
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="created"
+                    stroke="#38bdf8"
+                    strokeWidth={2}
+                    fill="url(#createdGradient)"
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </Card>
+          <Card className="chart-card">
+            <div className="chart-card-head">
+              <div>
+                <h3>Task status</h3>
+                <p>{metrics.total} visible tasks</p>
+              </div>
+              <span className="chart-total">
+                {metrics.completed}
+                <small>done</small>
+              </span>
+            </div>
+            <div className="donut-wrap">
+              {taskDistribution.length ? (
+                <>
+                  <ResponsiveContainer width="58%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={taskDistribution}
+                        dataKey="value"
+                        nameKey="name"
+                        innerRadius={48}
+                        outerRadius={70}
+                        paddingAngle={4}
+                        stroke="none"
+                      >
+                        {taskDistribution.map((entry, index) => (
+                          <Cell
+                            key={entry.name}
+                            fill={chartColors[index % chartColors.length]}
+                          />
+                        ))}
+                      </Pie>
+                      <Tooltip
+                        contentStyle={{
+                          background: "var(--panel-strong)",
+                          border: "1px solid var(--line-strong)",
+                          borderRadius: 12,
+                          color: "var(--text)",
+                          fontSize: 12,
+                        }}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                  <div className="donut-legend">
+                    {taskDistribution.map((entry, index) => (
+                      <span key={entry.name}>
+                        <i
+                          style={{
+                            background: chartColors[index % chartColors.length],
+                          }}
+                        />
+                        {entry.name}
+                        <strong>{entry.value}</strong>
+                      </span>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <EmptyState
+                  icon={ListTodo}
+                  title="No task data"
+                  description="Create a task to see distribution."
+                />
+              )}
+            </div>
+          </Card>
+          <Card className="chart-card chart-wide">
+            <div className="chart-card-head">
+              <div>
+                <h3>Team performance</h3>
+                <p>Open and completed work by teammate</p>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate(getModulePath(user, "workload"))}
+              >
+                View workload <ArrowRight size={14} />
+              </Button>
+            </div>
+            <div className="bar-chart-wrap">
+              {teamPerformance.length ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={teamPerformance}
+                    barGap={5}
+                    margin={{ top: 8, right: 6, left: -24, bottom: 0 }}
+                  >
+                    <CartesianGrid
+                      strokeDasharray="4 4"
+                      vertical={false}
+                      stroke="var(--line)"
+                    />
+                    <XAxis
+                      dataKey="name"
+                      tickLine={false}
+                      axisLine={false}
+                      tick={{ fill: "var(--muted)", fontSize: 11 }}
+                    />
+                    <YAxis
+                      allowDecimals={false}
+                      tickLine={false}
+                      axisLine={false}
+                      tick={{ fill: "var(--muted)", fontSize: 11 }}
+                    />
+                    <Tooltip
+                      contentStyle={{
+                        background: "var(--panel-strong)",
+                        border: "1px solid var(--line-strong)",
+                        borderRadius: 12,
+                        color: "var(--text)",
+                        fontSize: 12,
+                      }}
+                    />
+                    <Bar
+                      dataKey="completed"
+                      name="Completed"
+                      fill="#2563eb"
+                      radius={[5, 5, 0, 0]}
+                    />
+                    <Bar
+                      dataKey="open"
+                      name="Open"
+                      fill="#bae6fd"
+                      radius={[5, 5, 0, 0]}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <EmptyState
+                  icon={UsersRound}
+                  title="No team activity"
+                  description="Assigned work will create a performance view."
+                />
+              )}
+            </div>
+          </Card>
+        </div>
+      </section>
+      <div className="dashboard-grid dashboard-grid-bottom">
+        <Card>
+          <SectionHeading
+            eyebrow="Activity"
+            title="What changed recently"
+            action={
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate(getModulePath(user, "activity"))}
+              >
+                Full activity <ArrowRight size={14} />
+              </Button>
+            }
+          />
+          {activity.length ? (
+            <div className="activity-list">
+              {activity.map((item) => {
+                const Icon = activityIcons[item.entityType] ?? Activity;
+                return (
+                  <div className="activity-row" key={item.id}>
+                    <span className="activity-icon">
+                      <Icon size={15} />
+                    </span>
+                    <div>
+                      <p>
+                        <strong>{item.actorName}</strong> {item.action}
+                      </p>
+                      <small>
+                        {item.entityType} · {formatRelativeTime(item.createdAt)}
+                      </small>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <EmptyState
+              icon={Activity}
+              title="No activity yet"
+              description="Workspace changes will appear here."
+            />
+          )}
+        </Card>
+        <Card className="next-card">
+          <div className="next-card-glow" />
+          <span className="next-icon">
+            <Goal size={18} />
+          </span>
+          <div className="eyebrow">A small ritual</div>
+          <h3>End the day with a clean handoff.</h3>
+          <p>
+            Move unfinished work to a clear status, add one sentence of context
+            and give tomorrow a softer start.
+          </p>
+          <Button
+            variant="secondary"
+            onClick={() => navigate(getModulePath(user, "tasks"))}
+          >
+            Review my tasks <ArrowRight size={15} />
+          </Button>
+        </Card>
+      </div>
+      {quickAdd && (
+        <QuickAddModal
+          open
+          onClose={() => setQuickAdd(null)}
+          initialType={quickAdd.type}
+          initialRole={quickAdd.role}
+        />
+      )}
+    </div>
+  );
 }
