@@ -4,7 +4,8 @@ import { Login } from "./pages/Login";
 import { ModulePage } from "./pages/ModulePage";
 import { NotFound } from "./pages/NotFound";
 import { ResetPassword } from "./pages/ResetPassword";
-import { RoleDashboard } from "./pages/RoleDashboard";
+import { RoleHome } from "./pages/DashboardExtras";
+import { ROLE_MODULES, RoleModulePage } from "./pages/RoleModules";
 import { getDashboardPath, getVisibleNavigation } from "./lib/permissions";
 import { useAuth } from "./services/auth";
 import { LoadingState } from "./components/ui";
@@ -35,6 +36,7 @@ function ModuleRoute({ allowedRole }: { allowedRole: string }) {
   if (!user || user.role !== allowedRole) return <AccessDenied />;
   const canView = getVisibleNavigation(user).some((item) => item.path === module);
   if (!module || !canView) return <NotFound />;
+  if (ROLE_MODULES.includes(module)) return <RoleModulePage module={module} />;
   return <ModulePage module={module} />;
 }
 
@@ -51,23 +53,23 @@ export default function App() {
       <Route element={<AppShell />}>
         <Route path="/" element={<LandingRedirect />} />
         <Route path="/director" element={<RoleGuard allowed={["director"]} />}>
-          <Route index element={<RoleDashboard />} />
+          <Route index element={<RoleHome />} />
           <Route path=":module" element={<ModuleRoute allowedRole="director" />} />
         </Route>
         <Route path="/manager" element={<RoleGuard allowed={["manager"]} />}>
-          <Route index element={<RoleDashboard />} />
+          <Route index element={<RoleHome />} />
           <Route path=":module" element={<ModuleRoute allowedRole="manager" />} />
         </Route>
         <Route path="/team-lead" element={<RoleGuard allowed={["team_leader"]} />}>
-          <Route index element={<RoleDashboard />} />
+          <Route index element={<RoleHome />} />
           <Route path=":module" element={<ModuleRoute allowedRole="team_leader" />} />
         </Route>
         <Route path="/employee" element={<RoleGuard allowed={["employee"]} />}>
-          <Route index element={<RoleDashboard />} />
+          <Route index element={<RoleHome />} />
           <Route path=":module" element={<ModuleRoute allowedRole="employee" />} />
         </Route>
         <Route path="/client" element={<RoleGuard allowed={["client"]} />}>
-          <Route index element={<RoleDashboard />} />
+          <Route index element={<RoleHome />} />
           <Route path=":module" element={<ModuleRoute allowedRole="client" />} />
         </Route>
         <Route path="*" element={<NotFound />} />

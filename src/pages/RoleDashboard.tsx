@@ -14,7 +14,6 @@ import {
   FolderKanban,
   Goal,
   ListTodo,
-  MoreHorizontal,
   Plus,
   ShieldAlert,
   Sparkles,
@@ -63,26 +62,254 @@ import { useAuth } from "../services/auth";
 import { taskMetrics, useWorkspace } from "../services/workspace";
 import type { LucideIcon } from "lucide-react";
 import type { QuickAddType, Role, Task, TaskStatus } from "../types";
+const dashboardStyles = `
+.premium-dashboard {
+  --text: #17335f;
+  --muted: #667e9f;
+  --line: #e1eaf6;
+  --line-strong: #d5e5fa;
+  --panel-strong: #ffffff;
+  --dash-blue: #2563eb;
+  --dash-shadow: 0 8px 30px #315c9309, 0 2px 6px #315c9304;
+  position: relative;
+  isolation: isolate;
+  width: 100%;
+  min-width: 0;
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+  padding: 4px 0 28px;
+}
+.premium-dashboard *, .premium-dashboard *::before, .premium-dashboard *::after { box-sizing: border-box; }
+.premium-dashboard > * { min-width: 0; margin: 0; }
+.premium-dashboard::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse at 95% 2%, #38bdf810, transparent 35%), radial-gradient(ellipse at 5% 40%, #2563eb07, transparent 32%);
+}
+.premium-dashboard h1, .premium-dashboard h2, .premium-dashboard h3, .premium-dashboard p { margin-top: 0; }
+.premium-dashboard button, .premium-dashboard select { font: inherit; }
+.premium-dashboard button { touch-action: manipulation; }
+.premium-dashboard button:focus-visible, .premium-dashboard select:focus-visible, .premium-dashboard a:focus-visible {
+  outline: 3px solid #9abffc;
+  outline-offset: 4px;
+}
+.premium-dashboard .page-intro {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 24px;
+  padding: clamp(22px, 3vw, 38px);
+  border: 1px solid #d5e5fa;
+  border-radius: 28px;
+  background: radial-gradient(ellipse at top right, #e1f2ffe6, transparent 60%), linear-gradient(120deg, #fffffff5, #f1f7ffeb);
+  box-shadow: 0 16px 44px #315c930c, inset 0 1px 0 #ffffff;
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+}
+.premium-dashboard .page-intro::after {
+  content: "";
+  position: absolute;
+  width: 240px;
+  height: 240px;
+  border: 1px solid #ffffffd9;
+  border-radius: 50%;
+  top: -135px;
+  right: 45px;
+  box-shadow: 0 0 0 30px #ffffff33, 0 0 0 60px #ffffff26;
+  pointer-events: none;
+}
+.premium-dashboard .intro-main, .premium-dashboard .intro-bottom { position: relative; z-index: 1; }
+.premium-dashboard .breadcrumb { display: flex; align-items: center; flex-wrap: wrap; gap: 9px; color: var(--muted); font-size: 11px; margin-bottom: 22px; }
+.premium-dashboard .breadcrumb strong { font-weight: 600; color: #27496f; }
+.premium-dashboard .intro-title-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; }
+.premium-dashboard .intro-title-row > div { min-width: 0; }
+.premium-dashboard .eyebrow { display: block; color: #2563eb; font-size: 10px; font-weight: 750; letter-spacing: .1em; text-transform: uppercase; line-height: 1.6; margin-bottom: 8px; }
+.premium-dashboard .page-intro .eyebrow { font-size: 12px; letter-spacing: .025em; text-transform: none; }
+.premium-dashboard .page-intro h1 { margin: 0 0 12px; color: #17335f; font-size: clamp(27px, 3.3vw, 40px); font-weight: 760; letter-spacing: -.045em; line-height: 1.15; overflow-wrap: anywhere; }
+.premium-dashboard .page-intro p { max-width: 610px; margin: 0; color: var(--muted); font-size: 13px; line-height: 1.8; }
+.premium-dashboard .intro-status { flex: 0 0 auto; }
+.premium-dashboard .intro-bottom { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 20px; padding-top: 22px; border-top: 1px solid #d5e5fa; }
+.premium-dashboard .intro-date { display: flex; align-items: center; gap: 10px; color: #27496f; font-size: 12px; font-weight: 600; }
+.premium-dashboard .intro-date > span:first-child { display: grid; place-items: center; width: 36px; height: 36px; border: 1px solid #dbe7f7; border-radius: 12px; background: #ffffffb3; color: #2563eb; }
+.premium-dashboard .intro-actions { display: flex; flex-wrap: wrap; gap: 10px; margin: 0; }
+.premium-dashboard .intro-actions button { min-height: 44px; border-radius: 13px; }
+.premium-dashboard .dashboard-quick { margin: 0; padding: 22px; border: 1px solid #d5e5fa; border-radius: 22px; background: linear-gradient(135deg, #ffffffed, #f1f7ffbf); box-shadow: var(--dash-shadow), inset 0 1px 0 #ffffff; backdrop-filter: blur(22px); -webkit-backdrop-filter: blur(22px); }
+.premium-dashboard .dashboard-quick-head { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 18px; }
+.premium-dashboard .dashboard-quick-head h2 { margin: 0; font-size: 16px; font-weight: 750; letter-spacing: -.025em; }
+.premium-dashboard .dashboard-quick-head p { margin: 5px 0 0; font-size: 12px; line-height: 1.6; color: var(--muted); }
+.premium-dashboard .dashboard-quick-badge { display: inline-flex; align-items: center; gap: 6px; padding: 8px 11px; border: 1px solid #d9e9ff; border-radius: 30px; background: #ffffff; color: #2563eb; font-size: 11px; white-space: nowrap; }
+.premium-dashboard .dashboard-quick-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 11px; }
+.premium-dashboard .dashboard-quick-button { display: flex; align-items: center; gap: 11px; min-width: 0; min-height: 76px; padding: 14px; border: 1px solid #dbe7f7; border-radius: 16px; background: #ffffffd9; color: #27496f; text-align: left; cursor: pointer; box-shadow: inset 0 1px 0 #ffffff; transition: transform .2s, box-shadow .2s, border-color .2s; }
+.premium-dashboard .dashboard-quick-button > span:first-child { display: grid; place-items: center; flex-shrink: 0; width: 39px; height: 39px; border: 1px solid #dce9fc; border-radius: 13px; background: linear-gradient(140deg, #eff8ff, #e7efff); color: #2563eb; }
+.premium-dashboard .dashboard-quick-button > span:last-child { min-width: 0; }
+.premium-dashboard .dashboard-quick-button strong { display: block; font-size: 12px; line-height: 1.4; overflow-wrap: anywhere; }
+.premium-dashboard .dashboard-quick-button small { display: block; font-size: 10px; color: var(--muted); margin-top: 4px; line-height: 1.5; }
+.premium-dashboard .kpi-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.premium-dashboard .kpi-item { min-width: 0; height: 100%; }
+.premium-dashboard .kpi-item > * { width: 100%; height: 100%; min-width: 0; min-height: 150px; padding: 22px; border: 1px solid #e1eaf6; border-radius: 22px; background: linear-gradient(130deg, #ffffff, #f8fbff); box-shadow: var(--dash-shadow); transition: transform .22s, box-shadow .22s, border-color .22s; }
+.premium-dashboard .kpi-item strong { letter-spacing: -.035em; font-variant-numeric: tabular-nums; }
+.premium-dashboard .dashboard-grid { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+.premium-dashboard .premium-panel { position: relative; min-width: 0; padding: 24px; border: 1px solid #e1eaf6; border-radius: 24px; background: #ffffffed; box-shadow: var(--dash-shadow); }
+.premium-dashboard .premium-panel h2, .premium-dashboard .client-summary-section h2, .premium-dashboard .analytics-section h2 { color: #17335f; font-size: 19px; letter-spacing: -.035em; line-height: 1.35; margin-bottom: 7px; }
+.premium-dashboard .premium-panel h3 { font-size: 15px; letter-spacing: -.025em; color: #17335f; }
+.premium-dashboard .premium-panel p, .premium-dashboard .client-summary-section p, .premium-dashboard .analytics-section p { color: var(--muted); font-size: 12px; line-height: 1.7; }
+.premium-dashboard .premium-panel > :first-child { margin-top: 0; }
+.premium-dashboard .focus-list, .premium-dashboard .project-mini-list, .premium-dashboard .activity-list { display: flex; flex-direction: column; gap: 10px; margin-top: 22px; }
+.premium-dashboard .focus-row { position: relative; display: grid; grid-template-columns: 4px minmax(0, 1fr) 138px; align-items: center; gap: 12px; padding: 14px; border: 1px solid #e9eff8; border-radius: 15px; background: #fafcff; transition: border-color .2s, background .2s; }
+.premium-dashboard .priority-line { width: 4px; height: 34px; border-radius: 5px; background: #2563eb; }
+.premium-dashboard .priority-rose, .premium-dashboard .priority-danger { background: #f43f5e; }
+.premium-dashboard .priority-amber, .premium-dashboard .priority-warning { background: #f59e0b; }
+.premium-dashboard .priority-green, .premium-dashboard .priority-success { background: #0ea5a4; }
+.premium-dashboard .focus-row-main { min-width: 0; }
+.premium-dashboard .focus-row-main > strong { display: block; font-size: 12px; line-height: 1.6; overflow-wrap: anywhere; }
+.premium-dashboard .focus-row-main > span { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 5px; color: var(--muted); font-size: 10px; line-height: 1.6; overflow-wrap: anywhere; }
+.premium-dashboard .focus-row select { width: 100%; min-width: 0; min-height: 40px; border: 1px solid #dbe7f7; border-radius: 10px; color: #27496f; background: #ffffff; font-size: 11px; padding: 8px; }
+.premium-dashboard .focus-row > div:has(select) { min-width: 0; }
+.premium-dashboard select:disabled { opacity: .6; cursor: wait; }
+.premium-dashboard .task-saving { color: #2563eb; font-weight: 600; }
+.premium-dashboard .text-danger { color: #e11d48; }
+.premium-dashboard .project-mini { padding: 16px; border: 1px solid #e9eff8; border-radius: 16px; background: linear-gradient(140deg, #fafcff, #ffffff); }
+.premium-dashboard .project-mini-top { display: flex; gap: 11px; align-items: center; flex-wrap: wrap; }
+.premium-dashboard .project-mini-top > div { flex: 1; min-width: 100px; }
+.premium-dashboard .project-avatar, .premium-dashboard .activity-icon, .premium-dashboard .next-icon { display: grid; place-items: center; flex: 0 0 auto; width: 38px; height: 38px; border-radius: 12px; color: #2563eb; background: linear-gradient(140deg, #eff8ff, #e7efff); border: 1px solid #dce9fc; }
+.premium-dashboard .project-mini-top strong { display: block; font-size: 12px; line-height: 1.5; overflow-wrap: anywhere; }
+.premium-dashboard .project-mini-top div > span { display: block; margin-top: 4px; color: var(--muted); font-size: 10px; overflow-wrap: anywhere; }
+.premium-dashboard .project-mini-meta { display: flex; flex-direction: column; gap: 8px; margin-top: 15px; }
+.premium-dashboard .project-mini-meta > span { color: var(--muted); font-size: 10px; text-align: right; }
+.premium-dashboard .client-summary-section, .premium-dashboard .analytics-section { min-width: 0; }
+.premium-dashboard .client-pulse-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-top: 20px; }
+.premium-dashboard .client-pulse-top { display: flex; align-items: center; gap: 11px; }
+.premium-dashboard .client-pulse-top > div:nth-child(2) { flex: 1; min-width: 0; }
+.premium-dashboard .client-pulse-top strong { display: block; font-size: 13px; line-height: 1.5; overflow-wrap: anywhere; }
+.premium-dashboard .client-pulse-top div > span { display: block; font-size: 11px; color: var(--muted); margin-top: 4px; line-height: 1.6; overflow-wrap: anywhere; }
+.premium-dashboard .client-pulse-top button { display: grid; place-items: center; flex: 0 0 auto; width: 34px; height: 34px; border: 1px solid #dbe7f7; border-radius: 11px; background: #fafcff; color: #2563eb; cursor: pointer; }
+.premium-dashboard .client-pulse-stats { display: grid; grid-template-columns: 1fr 1fr minmax(0, 1.3fr); gap: 10px; margin-top: 21px; padding-top: 18px; border-top: 1px solid #e9eff8; }
+.premium-dashboard .client-pulse-stats > span { display: flex; min-width: 0; flex-direction: column; align-items: flex-start; gap: 8px; }
+.premium-dashboard .client-pulse-stats small { font-size: 10px; color: var(--muted); }
+.premium-dashboard .client-pulse-stats strong { font-size: 23px; letter-spacing: -.04em; font-variant-numeric: tabular-nums; }
+.premium-dashboard .attention-note { display: flex; align-items: center; gap: 7px; margin-top: 18px; padding: 10px 12px; border-radius: 11px; background: #fff8eb; color: #a16207; font-size: 10px; line-height: 1.6; }
+.premium-dashboard .attention-good { background: #effaf7; color: #0f766e; }
+.premium-dashboard .analytics-section { scroll-margin-top: 90px; }
+.premium-dashboard .analytics-grid { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 20px; margin-top: 20px; }
+.premium-dashboard .analytics-grid > * { grid-column: auto; }
+.premium-dashboard .analytics-grid > :last-child { grid-column: 1 / -1; }
+.premium-dashboard .chart-card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; flex-wrap: wrap; margin-bottom: 20px; }
+.premium-dashboard .chart-card-head h3 { margin: 0 0 5px; font-size: 14px; line-height: 1.5; }
+.premium-dashboard .chart-card-head p { margin: 0; font-size: 11px; }
+.premium-dashboard .chart-legend { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 7px; font-size: 10px; color: var(--muted); }
+.premium-dashboard .chart-legend i, .premium-dashboard .donut-legend i { display: inline-block; flex: 0 0 auto; width: 8px; height: 8px; border-radius: 50%; }
+.premium-dashboard .legend-blue { background: #2563eb; }
+.premium-dashboard .legend-cyan { background: #38bdf8; }
+.premium-dashboard .chart-wrap { width: 100%; height: 260px; min-width: 0; }
+.premium-dashboard .bar-chart-wrap { width: 100%; height: 290px; min-width: 0; }
+.premium-dashboard .chart-total { display: flex; align-items: baseline; gap: 5px; color: #2563eb; font-size: 24px; font-weight: 750; letter-spacing: -.035em; }
+.premium-dashboard .chart-total small { color: var(--muted); font-size: 10px; font-weight: 500; letter-spacing: 0; }
+.premium-dashboard .donut-wrap { display: flex; align-items: center; gap: 4px; min-width: 0; min-height: 260px; }
+.premium-dashboard .donut-chart { flex: 1; min-width: 0; height: 240px; }
+.premium-dashboard .donut-legend { display: flex; flex-direction: column; flex: 1; min-width: 0; gap: 16px; padding-right: 2px; }
+.premium-dashboard .donut-legend > span { display: flex; align-items: center; gap: 7px; font-size: 10px; line-height: 1.5; color: var(--muted); }
+.premium-dashboard .donut-legend strong { margin-left: auto; color: #17335f; font-size: 12px; }
+.premium-dashboard .recharts-wrapper { max-width: 100%; }
+.premium-dashboard .recharts-tooltip-wrapper { z-index: 5; }
+.premium-dashboard .activity-row { display: flex; align-items: flex-start; gap: 12px; padding: 12px 0; }
+.premium-dashboard .activity-row + .activity-row { border-top: 1px solid #edf2fa; }
+.premium-dashboard .activity-row > div { min-width: 0; }
+.premium-dashboard .activity-row p { margin: 0 0 5px; color: #27496f; font-size: 12px; overflow-wrap: anywhere; }
+.premium-dashboard .activity-row small { color: var(--muted); font-size: 10px; }
+.premium-dashboard .dashboard-grid-bottom { align-items: stretch; }
+.premium-dashboard .next-card { overflow: hidden; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; background: linear-gradient(145deg, #f1f7ff, #ffffff); padding: 32px; }
+.premium-dashboard .next-card > :not(.next-card-glow) { position: relative; z-index: 1; }
+.premium-dashboard .next-card-glow { position: absolute; top: -60px; right: -40px; width: 210px; height: 210px; border-radius: 50%; background: #38bdf815; filter: blur(35px); pointer-events: none; }
+.premium-dashboard .next-icon { margin-bottom: 22px; width: 46px; height: 46px; border-radius: 15px; }
+.premium-dashboard .next-card h3 { max-width: 330px; margin: 0 0 12px; font-size: 26px; line-height: 1.25; letter-spacing: -.04em; }
+.premium-dashboard .next-card p { max-width: 370px; font-size: 12px; line-height: 1.9; margin-bottom: 22px; }
+.premium-dashboard .next-card button { min-height: 44px; border-radius: 12px; }
+.premium-dashboard .dashboard-alert { padding: 16px 18px; border-radius: 14px; }
+.premium-dashboard .dashboard-loading { display: grid; gap: 20px; }
+.premium-dashboard .loading-bar { height: 140px; border-radius: 24px; background: linear-gradient(100deg, #eaf2fc 25%, #f8fbff 45%, #eaf2fc 65%); background-size: 200% 100%; animation: dashboard-shimmer 1.8s linear infinite; }
+.premium-dashboard .loading-bar-short { height: 100px; width: 70%; }
+.premium-dashboard .loading-copy { color: var(--muted); font-size: 13px; }
+@keyframes dashboard-shimmer { to { background-position: -200% 0; } }
+@keyframes dashboard-enter { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+@media (prefers-reduced-motion: no-preference) {
+  .premium-dashboard > .page-intro, .premium-dashboard > .dashboard-quick, .premium-dashboard > .kpi-grid { animation: dashboard-enter .45s ease-out both; }
+  .premium-dashboard > .dashboard-quick { animation-delay: .06s; }
+  .premium-dashboard > .kpi-grid { animation-delay: .12s; }
+}
+@media (hover: hover) {
+  .premium-dashboard .dashboard-quick-button:hover { transform: translateY(-3px); border-color: #9ebff0; box-shadow: 0 10px 22px #2563eb0c; }
+  .premium-dashboard .kpi-item > :hover { transform: translateY(-3px); border-color: #bfd7f9; box-shadow: 0 14px 30px #315c9310; }
+  .premium-dashboard .focus-row:hover { border-color: #cddff9; background: #f4f8ff; }
+  .premium-dashboard .client-pulse-top button:hover { background: #eff6ff; border-color: #9ebff0; }
+}
+@media (min-width: 1600px) {
+  .premium-dashboard .kpi-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .premium-dashboard .client-pulse-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+@media (max-width: 1100px) {
+  .premium-dashboard .dashboard-grid, .premium-dashboard .analytics-grid { grid-template-columns: 1fr; }
+  .premium-dashboard .analytics-grid > :last-child { grid-column: auto; }
+  .premium-dashboard .donut-wrap { justify-content: center; }
+  .premium-dashboard .donut-chart, .premium-dashboard .donut-legend { max-width: 300px; }
+}
+@media (max-width: 760px) {
+  .premium-dashboard { gap: 20px; }
+  .premium-dashboard .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .premium-dashboard .kpi-item > * { padding: 18px; min-height: 138px; border-radius: 18px; }
+  .premium-dashboard .client-pulse-grid { grid-template-columns: 1fr; }
+  .premium-dashboard .intro-title-row { flex-direction: column; gap: 14px; }
+  .premium-dashboard .intro-status { order: -1; }
+  .premium-dashboard .breadcrumb { margin-bottom: 16px; }
+  .premium-dashboard .premium-panel { padding: 20px; border-radius: 20px; }
+}
+@media (max-width: 520px) {
+  .premium-dashboard .page-intro { padding: 22px 18px; border-radius: 22px; gap: 20px; }
+  .premium-dashboard .page-intro h1 { font-size: 28px; }
+  .premium-dashboard .intro-bottom { gap: 16px; padding-top: 18px; }
+  .premium-dashboard .intro-actions { width: 100%; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .premium-dashboard .intro-actions button:only-child { grid-column: 1 / -1; }
+  .premium-dashboard .intro-actions button { width: 100%; padding: 10px 8px; font-size: 11px; }
+  .premium-dashboard .dashboard-quick { padding: 17px; border-radius: 20px; }
+  .premium-dashboard .dashboard-quick-head { flex-wrap: wrap; }
+  .premium-dashboard .dashboard-quick-head h2 { font-size: 15px; }
+  .premium-dashboard .dashboard-quick-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
+  .premium-dashboard .dashboard-quick-button { flex-direction: column; align-items: flex-start; min-height: 109px; padding: 12px; gap: 10px; border-radius: 14px; }
+  .premium-dashboard .dashboard-quick-button strong { font-size: 11px; }
+  .premium-dashboard .dashboard-quick-button small { font-size: 9px; }
+  .premium-dashboard .kpi-item > * { padding: 15px; }
+  .premium-dashboard .premium-panel { padding: 17px; }
+  .premium-dashboard .focus-row { grid-template-columns: 4px minmax(0, 1fr); gap: 10px; padding: 12px; }
+  .premium-dashboard .focus-row > select, .premium-dashboard .focus-row > div:has(select) { grid-column: 2; width: 100%; }
+  .premium-dashboard .focus-row select { min-height: 44px; font-size: 12px; }
+  .premium-dashboard .project-mini { padding: 13px; }
+  .premium-dashboard .chart-wrap { height: 230px; }
+  .premium-dashboard .bar-chart-wrap { height: 260px; }
+  .premium-dashboard .donut-wrap { flex-direction: column; gap: 0; }
+  .premium-dashboard .donut-chart { flex: none; width: 100%; height: 200px; }
+  .premium-dashboard .donut-legend { width: 100%; max-width: none; padding: 0 5px 10px; }
+  .premium-dashboard .donut-legend > span { font-size: 11px; }
+  .premium-dashboard .next-card { padding: 24px; }
+  .premium-dashboard .next-card h3 { font-size: 24px; }
+}
+@media (max-width: 340px) {
+  .premium-dashboard .kpi-grid, .premium-dashboard .intro-actions { grid-template-columns: 1fr; }
+  .premium-dashboard .dashboard-quick-grid { grid-template-columns: 1fr; }
+  .premium-dashboard .dashboard-quick-button { flex-direction: row; align-items: center; min-height: 70px; }
+  .premium-dashboard .client-pulse-stats { grid-template-columns: 1fr 1fr; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .premium-dashboard *, .premium-dashboard *::before, .premium-dashboard *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+  .premium-dashboard .dashboard-quick-button:hover, .premium-dashboard .kpi-item > :hover { transform: none; }
+}
 
-const dashboardQuickStyles = `
-.dashboard-quick{min-width:0;margin:0 0 22px;padding:19px;border:1px solid #d5e5fa;border-radius:22px;background:radial-gradient(ellipse at top left,#e1f2ffc9,transparent 65%),linear-gradient(135deg,#fffffff2,#f1f7ffdf);box-shadow:0 14px 35px #315c9310,inset 0 1px 0 #fff;backdrop-filter:blur(22px);color:#17335f}
-.dashboard-quick *{box-sizing:border-box}
-.dashboard-quick-head{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:14px}
-.dashboard-quick-head h2{margin:0;font-size:16px;font-weight:750;letter-spacing:-.025em;color:#17335f}
-.dashboard-quick-head p{margin:4px 0 0;font-size:12px;line-height:1.5;color:#667e9f}
-.dashboard-quick-badge{display:inline-flex;align-items:center;gap:6px;padding:7px 10px;border:1px solid #d9e9ff;border-radius:30px;background:#fff;color:#2563eb;font-size:11px;white-space:nowrap}
-.dashboard-quick-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:10px}
-.dashboard-quick-button{display:flex;align-items:center;gap:10px;min-width:0;padding:13px 12px;border:1px solid #dbe7f7;border-radius:14px;background:#ffffffd9;color:#27496f;text-align:left;font:inherit;cursor:pointer;transition:transform .2s,box-shadow .2s,border-color .2s}
-.dashboard-quick-button>span:first-child{display:grid;place-items:center;flex-shrink:0;width:35px;height:35px;border:1px solid #dce9fc;border-radius:11px;background:linear-gradient(140deg,#eff8ff,#e7efff);color:#2563eb}
-.dashboard-quick-button strong{display:block;font-size:12px;line-height:1.4;overflow-wrap:anywhere}
-.dashboard-quick-button small{display:block;font-size:10px;color:#7890ae;margin-top:3px;line-height:1.5}
-.dashboard-quick-button:focus-visible{outline:3px solid #9abffc;outline-offset:3px}
-@media(hover:hover){.dashboard-quick-button:hover{transform:translateY(-2px);border-color:#9ebff0;box-shadow:0 8px 18px #2563eb0e}}
-@media(max-width:640px){.dashboard-quick{padding:14px;border-radius:18px}.dashboard-quick-head{align-items:flex-start;flex-wrap:wrap}.dashboard-quick-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.dashboard-quick-button{padding:11px 9px;gap:8px}.dashboard-quick-button small{display:none}.dashboard-quick-button strong{font-size:11px}}
-@media(max-width:360px){.dashboard-quick-grid{grid-template-columns:1fr}}
-@media(prefers-reduced-motion:reduce){.dashboard-quick-button{transition:none}.dashboard-quick-button:hover{transform:none}}
 `;
-
 const chartColors = ["#2563eb", "#38bdf8", "#8b5cf6", "#0ea5a4"];
 const taskStatuses: TaskStatus[] = [
   "Backlog",
@@ -90,7 +317,6 @@ const taskStatuses: TaskStatus[] = [
   "In Review",
   "Completed",
 ];
-
 const shortGreeting = () => {
   const hour = new Date().getHours();
   return hour < 12
@@ -99,7 +325,6 @@ const shortGreeting = () => {
       ? "Good afternoon"
       : "Good evening";
 };
-
 function getStats(
   role: Role,
   data: ReturnType<typeof useWorkspace>["data"],
@@ -404,17 +629,18 @@ function getStats(
     ];
   return base;
 }
-
 function PageIntro({
   role,
   userName,
   mode,
   onQuickAdd,
+  canQuickAdd,
 }: {
   role: Role;
   userName: string;
   mode: string;
   onQuickAdd: () => void;
+  canQuickAdd: boolean;
 }) {
   const copy: Record<Role, { title: string; description: string }> = {
     director: {
@@ -446,7 +672,7 @@ function PageIntro({
   const current = copy[role];
   return (
     <div className="page-intro">
-      <div>
+      <div className="intro-main">
         <div className="breadcrumb">
           <span>Workspace</span>
           <span>/</span>
@@ -460,11 +686,18 @@ function PageIntro({
             <h1>{current.title}</h1>
             <p>{current.description}</p>
           </div>
-          <Badge tone={mode === "firebase" ? "success" : "blue"} dot>
-            {mode === "firebase" ? "Live Firebase data" : "Local demo data"}
-          </Badge>
+          <div className="intro-status">
+            <Badge tone={mode === "firebase" ? "success" : "blue"} dot>
+              {mode === "firebase" ? "Live Firebase data" : "Local demo data"}
+            </Badge>
+          </div>
         </div>
       </div>
+      <div className="intro-bottom">
+        <div className="intro-date">
+          <span><CalendarClock size={17} aria-hidden="true" /></span>
+          <span>{new Date().toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long" })}</span>
+        </div>
       <div className="intro-actions">
         <Button
           variant="secondary"
@@ -472,19 +705,24 @@ function PageIntro({
           onClick={() =>
             document
               .getElementById("dashboard-analytics")
-              ?.scrollIntoView({ behavior: "smooth", block: "start" })
+              ?.scrollIntoView({
+                behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+                block: "start",
+              })
           }
         >
           View insights
         </Button>
-        <Button icon={Plus} onClick={onQuickAdd}>
-          Quick add
-        </Button>
+        {canQuickAdd && (
+          <Button icon={Plus} onClick={onQuickAdd}>
+            Quick add
+          </Button>
+        )}
+      </div>
       </div>
     </div>
   );
 }
-
 export function RoleDashboard() {
   const { user } = useAuth();
   const { data, mode, loading, error, updateTask } = useWorkspace();
@@ -494,6 +732,7 @@ export function RoleDashboard() {
     type?: QuickAddType;
     role?: "employee" | "team_leader" | "manager";
   } | null>(null);
+  const [savingTaskIds, setSavingTaskIds] = useState<string[]>([]);
   const chartData = useMemo(
     () =>
       Array.from({ length: 6 }, (_, index) => {
@@ -514,13 +753,16 @@ export function RoleDashboard() {
       }),
     [data.tasks],
   );
-
   if (!user) return null;
   if (loading)
     return (
-      <div className="dashboard-loading">
-        <div className="loading-bar" />
-        <div className="loading-bar loading-bar-short" />
+      <div className="dashboard-page premium-dashboard" role="status" aria-live="polite" aria-busy="true">
+        <style>{dashboardStyles}</style>
+        <div className="dashboard-loading">
+          <div className="loading-bar" aria-hidden="true" />
+          <div className="loading-bar loading-bar-short" aria-hidden="true" />
+          <span className="loading-copy">Loading your workspace…</span>
+        </div>
       </div>
     );
   const stats = getStats(user.role, data, user.id);
@@ -568,7 +810,6 @@ export function RoleDashboard() {
     Goal,
   };
   const clientHealth = data.clients.slice(0, 4);
-
   const quickActions: {
     key: string;
     title: string;
@@ -696,9 +937,9 @@ export function RoleDashboard() {
       </div>
     </section>
   ) : null;
-
   const changeTask = async (task: Task, status: TaskStatus) => {
-    if (task.status === status) return;
+    if (task.status === status || savingTaskIds.includes(task.id)) return;
+    setSavingTaskIds((ids) => [...ids, task.id]);
     try {
       await updateTask(task.id, { status });
       notify(`Task moved to ${status}.`, "success");
@@ -707,17 +948,19 @@ export function RoleDashboard() {
         taskError instanceof Error ? taskError.message : "Task update failed.",
         "error",
       );
+    } finally {
+      setSavingTaskIds((ids) => ids.filter((id) => id !== task.id));
     }
   };
-
   return (
-    <div className="dashboard-page">
-      <style>{dashboardQuickStyles}</style>
+    <div className="dashboard-page premium-dashboard">
+      <style>{dashboardStyles}</style>
       <PageIntro
         role={user.role}
         userName={user.name}
         mode={mode}
         onQuickAdd={() => setQuickAdd({})}
+        canQuickAdd={visibleQuickActions.length > 0}
       />
       {quickActionBar}
       {error ? (
@@ -727,8 +970,8 @@ export function RoleDashboard() {
       ) : null}
       <section className="kpi-grid" aria-label="Live workspace metrics">
         {stats.map((stat) => (
+          <div className="kpi-item" key={stat.label}>
           <StatCard
-            key={stat.label}
             label={stat.label}
             value={stat.value}
             note={stat.note}
@@ -736,10 +979,11 @@ export function RoleDashboard() {
             tone={stat.tone}
             onClick={() => navigate(getModulePath(user, stat.module))}
           />
+          </div>
         ))}
       </section>
       <div className="dashboard-grid dashboard-grid-top">
-        <Card className="focus-card">
+        <Card className="premium-panel focus-card">
           <SectionHeading
             eyebrow={
               user.role === "employee" ? "Your focus" : "Execution pulse"
@@ -767,7 +1011,7 @@ export function RoleDashboard() {
           {focusTasks.length ? (
             <div className="focus-list">
               {focusTasks.map((task) => (
-                <div className="focus-row" key={task.id}>
+                <div className="focus-row" key={task.id} aria-busy={savingTaskIds.includes(task.id)}>
                   <span
                     className={`priority-line priority-${statusTone(task.priority)}`}
                   />
@@ -785,11 +1029,13 @@ export function RoleDashboard() {
                           ? "Overdue"
                           : `Due ${formatCompactDate(task.dueDate)}`}
                       </span>
+                      {savingTaskIds.includes(task.id) && <span className="task-saving" role="status">Saving…</span>}
                     </span>
                   </div>
                   <SelectInput
                     aria-label={`Change status for ${task.title}`}
                     value={task.status}
+                    disabled={savingTaskIds.includes(task.id)}
                     onChange={(event) =>
                       void changeTask(task, event.target.value as TaskStatus)
                     }
@@ -811,7 +1057,7 @@ export function RoleDashboard() {
             />
           )}
         </Card>
-        <Card className="project-pulse-card">
+        <Card className="premium-panel project-pulse-card">
           <SectionHeading
             eyebrow="Portfolio"
             title="Project health"
@@ -901,7 +1147,7 @@ export function RoleDashboard() {
         <div className="client-pulse-grid">
           {clientHealth.length ? (
             clientHealth.map((client) => (
-              <Card className="client-pulse-card" key={client.id}>
+              <Card className="premium-panel client-pulse-card" key={client.id}>
                 <div className="client-pulse-top">
                   <Avatar
                     name={client.company}
@@ -914,7 +1160,13 @@ export function RoleDashboard() {
                       {client.name} · {client.industry}
                     </span>
                   </div>
-                  <MoreHorizontal size={17} />
+                  <button
+                    type="button"
+                    aria-label={`Open workspace for ${client.company}`}
+                    onClick={() => navigate(getModulePath(user, user.role === "client" ? "projects" : "clients"))}
+                  >
+                    <ArrowRight size={15} aria-hidden="true" />
+                  </button>
                 </div>
                 <div className="client-pulse-stats">
                   <span>
@@ -952,7 +1204,7 @@ export function RoleDashboard() {
               </Card>
             ))
           ) : (
-            <Card>
+            <Card className="premium-panel">
               <EmptyState
                 icon={BriefcaseBusiness}
                 title="No client signal yet"
@@ -969,7 +1221,7 @@ export function RoleDashboard() {
           description="Calculated from the permitted workspace records, not placeholder numbers."
         />
         <div className="analytics-grid">
-          <Card className="chart-card chart-wide">
+          <Card className="premium-panel chart-card chart-wide">
             <div className="chart-card-head">
               <div>
                 <h3>Momentum over the last six days</h3>
@@ -1056,7 +1308,7 @@ export function RoleDashboard() {
               </ResponsiveContainer>
             </div>
           </Card>
-          <Card className="chart-card">
+          <Card className="premium-panel chart-card">
             <div className="chart-card-head">
               <div>
                 <h3>Task status</h3>
@@ -1070,7 +1322,8 @@ export function RoleDashboard() {
             <div className="donut-wrap">
               {taskDistribution.length ? (
                 <>
-                  <ResponsiveContainer width="58%" height="100%">
+                  <div className="donut-chart">
+                  <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
                         data={taskDistribution}
@@ -1081,10 +1334,10 @@ export function RoleDashboard() {
                         paddingAngle={4}
                         stroke="none"
                       >
-                        {taskDistribution.map((entry, index) => (
+                        {taskDistribution.map((entry) => (
                           <Cell
                             key={entry.name}
-                            fill={chartColors[index % chartColors.length]}
+                            fill={chartColors[taskStatuses.indexOf(entry.name as TaskStatus)]}
                           />
                         ))}
                       </Pie>
@@ -1099,12 +1352,13 @@ export function RoleDashboard() {
                       />
                     </PieChart>
                   </ResponsiveContainer>
+                  </div>
                   <div className="donut-legend">
-                    {taskDistribution.map((entry, index) => (
+                    {taskDistribution.map((entry) => (
                       <span key={entry.name}>
                         <i
                           style={{
-                            background: chartColors[index % chartColors.length],
+                            background: chartColors[taskStatuses.indexOf(entry.name as TaskStatus)],
                           }}
                         />
                         {entry.name}
@@ -1122,7 +1376,7 @@ export function RoleDashboard() {
               )}
             </div>
           </Card>
-          <Card className="chart-card chart-wide">
+          <Card className="premium-panel chart-card chart-wide">
             <div className="chart-card-head">
               <div>
                 <h3>Team performance</h3>
@@ -1196,7 +1450,7 @@ export function RoleDashboard() {
         </div>
       </section>
       <div className="dashboard-grid dashboard-grid-bottom">
-        <Card>
+        <Card className="premium-panel">
           <SectionHeading
             eyebrow="Activity"
             title="What changed recently"
@@ -1239,7 +1493,7 @@ export function RoleDashboard() {
             />
           )}
         </Card>
-        <Card className="next-card">
+        <Card className="premium-panel next-card">
           <div className="next-card-glow" />
           <span className="next-icon">
             <Goal size={18} />

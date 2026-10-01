@@ -1,21 +1,30 @@
 import {
   Activity,
+  AlarmClock,
   BarChart3,
+  Bell,
   BriefcaseBusiness,
   CalendarDays,
+  CheckCircle2,
   CheckSquare2,
   CircleDollarSign,
   ClipboardCheck,
+  ClipboardList,
   FileText,
   FolderKanban,
   Gauge,
   Goal,
   Grid2X2,
+  KeyRound,
   Layers3,
   ListTodo,
+  MessageSquareText,
   NotebookPen,
+  Send,
   Settings2,
-  ShieldCheck,
+  TrendingUp,
+  UserCircle,
+  UserCog,
   Users,
   UsersRound,
   Workflow,
@@ -30,32 +39,102 @@ export interface NavItem {
   roles: Role[];
   permission?: Permission;
   description: string;
+  /** Sidebar section heading */
+  group: string;
+  /** Reachable by route / search / profile menu, but not listed in the sidebar */
+  hidden?: boolean;
 }
 
-const internalRoles: Role[] = ["director", "manager", "team_leader", "employee"];
+const D: Role[] = ["director"];
+const M: Role[] = ["manager"];
+const TL: Role[] = ["team_leader"];
+const E: Role[] = ["employee"];
+const C: Role[] = ["client"];
+const DMT: Role[] = ["director", "manager", "team_leader"];
+const DM: Role[] = ["director", "manager"];
+const MT: Role[] = ["manager", "team_leader"];
+const ALL: Role[] = ["director", "manager", "team_leader", "employee", "client"];
+
+const nav = (
+  group: string,
+  label: string,
+  path: string,
+  icon: LucideIcon,
+  roles: Role[],
+  description: string,
+  permission?: Permission,
+  hidden?: boolean,
+): NavItem => ({ group, label, path, icon, roles, description, permission, hidden });
 
 export const navItems: NavItem[] = [
-  { label: "Overview", path: "", icon: Gauge, roles: ["director", "manager", "team_leader", "employee", "client"], description: "Your role-aware command center" },
-  { label: "People", path: "people", icon: UsersRound, roles: ["director", "manager", "team_leader"], permission: "people:read", description: "People, reporting lines and access" },
-  { label: "Clients", path: "clients", icon: BriefcaseBusiness, roles: ["director", "manager", "team_leader"], permission: "clients:read", description: "Accounts, health and follow-ups" },
-  { label: "Departments & Teams", path: "departments-teams", icon: Users, roles: ["director", "manager"], permission: "people:read", description: "Organization hierarchy and teams" },
-  { label: "Spaces & Folders", path: "spaces", icon: Layers3, roles: ["director", "manager"], permission: "workspace:read", description: "Organize work by business area" },
-  { label: "Projects", path: "projects", icon: FolderKanban, roles: internalRoles, permission: "projects:read", description: "Health, progress and ownership" },
-  { label: "Tasks", path: "tasks", icon: ListTodo, roles: internalRoles, permission: "tasks:read", description: "Work queue, deadlines and status" },
-  { label: "Board", path: "board", icon: Grid2X2, roles: internalRoles, permission: "tasks:read", description: "Move work through the team flow" },
-  { label: "Calendar", path: "calendar", icon: CalendarDays, roles: internalRoles, permission: "tasks:read", description: "Deadlines, milestones and dates" },
-  { label: "Timeline", path: "timeline", icon: Workflow, roles: ["director", "manager", "team_leader"], permission: "projects:read", description: "See project sequencing at a glance" },
-  { label: "Workload", path: "workload", icon: BarChart3, roles: ["director", "manager", "team_leader", "employee"], permission: "tasks:read", description: "Balance capacity before it becomes risk" },
-  { label: "Goals", path: "goals", icon: Goal, roles: ["director", "manager", "team_leader", "employee"], permission: "workspace:read", description: "Progress that connects to outcomes" },
-  { label: "Attendance", path: "attendance", icon: CheckSquare2, roles: internalRoles, permission: "attendance:read", description: "Presence, hours and requests" },
-  { label: "Approvals", path: "approvals", icon: ClipboardCheck, roles: internalRoles.concat(["client"]), permission: "approvals:read", description: "Reviews, requests and decisions" },
-  { label: "Reports", path: "reports", icon: BarChart3, roles: ["director", "manager", "team_leader"], permission: "reports:read", description: "Scoped performance and exports" },
-  { label: "Finance", path: "finance", icon: CircleDollarSign, roles: ["director", "manager"], permission: "finance:read", description: "Budgets, invoices and spend" },
-  { label: "Files", path: "files", icon: FileText, roles: internalRoles.concat(["client"]), permission: "files:read", description: "Shared, permission-aware assets" },
-  { label: "Docs", path: "docs", icon: NotebookPen, roles: internalRoles, permission: "workspace:read", description: "A lightweight knowledge base" },
-  { label: "Notifications", path: "notifications", icon: ShieldCheck, roles: internalRoles.concat(["client"]), description: "Assignments, mentions and approvals" },
-  { label: "Activity & Audit", path: "activity", icon: Activity, roles: ["director"], permission: "audit:read", description: "A transparent record of changes" },
-  { label: "Settings", path: "settings", icon: Settings2, roles: ["director", "manager"], permission: "settings:read", description: "Workspace configuration and controls" },
+  nav("Home", "Overview", "", Gauge, ALL, "Your role-aware command center"),
+
+  /* ---------------- Director: manage the whole workspace ---------------- */
+  nav("Manage", "Users", "people", UsersRound, D, "Create users, assign roles and manage access", "people:read"),
+  nav("Manage", "Teams & Departments", "departments-teams", Users, D, "Organization hierarchy and teams", "people:read"),
+  nav("Manage", "Clients", "clients", BriefcaseBusiness, D, "Accounts, health and follow-ups", "clients:read"),
+  nav("Manage", "Spaces & Folders", "spaces", Layers3, D, "Organize work by business area", "workspace:read"),
+  nav("Manage", "Roles & Access", "access", KeyRound, D, "Role permissions and account access", "settings:read"),
+
+  /* ---------------- Manager: team leads and oversight ---------------- */
+  nav("My team", "Team Leads", "team-leads", UserCog, M, "Your team leads, their load and delivery", "people:read"),
+  nav("My team", "Team Members", "people", UsersRound, M, "People, reporting lines and access", "people:read"),
+  nav("My team", "Teams", "departments-teams", Users, M, "Organization hierarchy and teams", "people:read"),
+  nav("My team", "Spaces & Folders", "spaces", Layers3, M, "Organize work by business area", "workspace:read"),
+  nav("My team", "Team Progress", "team-progress", TrendingUp, M, "Completion, overdue work and hours by person", "tasks:read"),
+
+  /* ---------------- Team Lead: employees and delivery ---------------- */
+  nav("My team", "My Employees", "employees", UsersRound, TL, "Your employees, workload and next tasks", "people:read"),
+  nav("My team", "Directory", "people", Users, TL, "People and reporting lines", "people:read"),
+  nav("My team", "Attendance", "attendance", CheckSquare2, TL, "Presence, hours and requests", "attendance:read"),
+  nav("My team", "Team Performance", "performance", TrendingUp, TL, "Completion and delivery signals", "reports:read"),
+
+  /* ---------------- Plan & deliver ---------------- */
+  nav("Plan & deliver", "Projects", "projects", FolderKanban, DMT, "Health, progress and ownership", "projects:read"),
+  nav("Plan & deliver", "Tasks", "tasks", ListTodo, DMT, "Work queue, deadlines and status", "tasks:read"),
+  nav("Plan & deliver", "Task Assignments", "assign-tasks", ClipboardList, M, "Assign and reassign work to your people", "tasks:write"),
+  nav("Plan & deliver", "Assign Tasks", "assign-tasks", ClipboardList, TL, "Give employees clear next actions", "tasks:write"),
+  nav("Plan & deliver", "Board", "board", Grid2X2, DMT, "Move work through the team flow", "tasks:read"),
+  nav("Plan & deliver", "Deadlines", "deadlines", AlarmClock, TL, "Overdue, due today and coming up", "tasks:read"),
+  nav("Plan & deliver", "Calendar", "calendar", CalendarDays, DMT, "Deadlines, milestones and dates", "tasks:read"),
+  nav("Plan & deliver", "Timeline", "timeline", Workflow, DMT, "See project sequencing at a glance", "projects:read"),
+  nav("Plan & deliver", "Workload", "workload", BarChart3, DMT, "Balance capacity before it becomes risk", "tasks:read"),
+  nav("Plan & deliver", "Goals", "goals", Goal, DMT, "Progress that connects to outcomes", "workspace:read"),
+
+  /* ---------------- Review & report ---------------- */
+  nav("Review & report", "Review Submissions", "review-submissions", CheckCircle2, MT, "Approve work or request changes", "tasks:write"),
+  nav("Review & report", "Approvals", "approvals", ClipboardCheck, DMT, "Reviews, requests and decisions", "approvals:read"),
+  nav("Review & report", "Reports", "reports", BarChart3, DMT, "Scoped performance and exports", "reports:read"),
+  nav("Review & report", "Clients", "clients", BriefcaseBusiness, MT, "Accounts, health and follow-ups", "clients:read"),
+  nav("Review & report", "Finance", "finance", CircleDollarSign, DM, "Budgets, invoices and spend", "finance:read"),
+  nav("Review & report", "Attendance", "attendance", CheckSquare2, DM, "Presence, hours and requests", "attendance:read"),
+  nav("Review & report", "Files", "files", FileText, DMT, "Shared, permission-aware assets", "files:read"),
+  nav("Review & report", "Docs", "docs", NotebookPen, DMT, "A lightweight knowledge base", "workspace:read"),
+  nav("Review & report", "Activity & Audit", "activity", Activity, D, "A transparent record of changes", "audit:read"),
+
+  /* ---------------- Employee: my work ---------------- */
+  nav("My work", "My Tasks", "my-tasks", ListTodo, E, "Everything assigned to you", "tasks:read"),
+  nav("My work", "My Projects", "my-projects", FolderKanban, E, "Projects you contribute to", "projects:read"),
+  nav("My work", "Task Board", "board", Grid2X2, E, "Move your work through the flow", "tasks:read"),
+  nav("My work", "Work Updates", "work-updates", MessageSquareText, E, "Share progress on your tasks", "tasks:write"),
+  nav("My work", "Submissions", "submissions", Send, E, "Submit finished work for review", "tasks:write"),
+  nav("My work", "Calendar", "calendar", CalendarDays, E, "Your deadlines and dates", "tasks:read"),
+  nav("Me", "Workload", "workload", BarChart3, E, "Your capacity at a glance", "tasks:read"),
+  nav("Me", "Attendance", "attendance", CheckSquare2, E, "Check in and see your hours", "attendance:read"),
+  nav("Me", "Goals", "goals", Goal, E, "Progress that connects to outcomes", "workspace:read"),
+  nav("Me", "Files", "files", FileText, E, "Your shared assets", "files:read"),
+  nav("Me", "Docs", "docs", NotebookPen, E, "Team knowledge base", "workspace:read"),
+
+  /* ---------------- Client ---------------- */
+  nav("Workspace", "Approvals", "approvals", ClipboardCheck, C, "Reviews, requests and decisions", "approvals:read"),
+  nav("Workspace", "Files", "files", FileText, C, "Shared, permission-aware assets", "files:read"),
+
+  /* ---------------- Workspace (everyone) ---------------- */
+  nav("Workspace", "Notifications", "notifications", Bell, ALL, "Assignments, mentions and approvals"),
+  nav("Workspace", "Settings", "settings", Settings2, D, "Workspace configuration and controls", "settings:read"),
+  nav("Workspace", "Settings", "preferences", Settings2, ["manager", "team_leader", "employee"], "Your notification preferences"),
+  nav("Workspace", "Profile", "profile", UserCircle, E, "Your details and reporting line"),
+  nav("Workspace", "Profile", "profile", UserCircle, DMT, "Your details and reporting line", undefined, true),
 ];
 
 const permissionsByRole: Record<Role, Permission[]> = {
@@ -65,6 +144,9 @@ const permissionsByRole: Record<Role, Permission[]> = {
   employee: ["workspace:read", "projects:read", "tasks:read", "tasks:write", "attendance:read", "attendance:write", "files:read", "files:write"],
   client: ["workspace:read", "projects:read", "tasks:read", "files:read", "approvals:read", "approvals:write"],
 };
+
+/** Read-only view of the role → permission model (used by Roles & Access). */
+export const rolePermissions: Record<Role, Permission[]> = permissionsByRole;
 
 export const hasPermission = (user: UserProfile | null | undefined, permission: Permission) => {
   if (!user) return false;
